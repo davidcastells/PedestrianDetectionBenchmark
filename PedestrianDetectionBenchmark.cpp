@@ -147,11 +147,11 @@ void PedestrianDetectionBenchmark::run()
     
     Downloader downloader;
     
-    
+    std::string outDir = "data";
     
     //downloader.setURLBase("http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/USA/");
     downloader.setURLBase("http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/");
-    downloader.setOutputDir("data");
+    downloader.setOutputDir(outDir.c_str());
     downloader.setDataset(m_dataset.c_str());
     
     
@@ -160,10 +160,10 @@ void PedestrianDetectionBenchmark::run()
     downloader.fetchSet1();
     
     SeqFileHeader header;
-    SeqFileReader reader(("data/"+m_dataset+"/set01/V000.seq").c_str());
+    SeqFileReader reader((outDir +"/"+m_dataset+"/set01/V000.seq").c_str());
     reader.readHeader(&header);
     
-    MatfileReader annotationReader(("data/"+m_dataset+"/annotations/set01/V000.vbb").c_str());
+    MatfileReader annotationReader((outDir + "/"+m_dataset+"/annotations/set01/V000.vbb").c_str());
     annotationReader.setVerbose(0);
     annotationReader.readVdd();
     
@@ -174,7 +174,7 @@ void PedestrianDetectionBenchmark::run()
     extractor.m_resize = m_doResizePersons;
     extractor.m_resizeX = m_doResizePersonsX;
     extractor.m_resizeY = m_doResizePersonsY;    
-    extractor.setExtractionPath(("data/"+m_dataset+"/extraction/set01/V000").c_str());
+    extractor.setExtractionPath((outDir + "/"+m_dataset+"/extraction/set01/V000").c_str());
     
     if (header.allocatedFrames != annotationReader.getAnnotatedFrames())
     {
@@ -209,7 +209,7 @@ void PedestrianDetectionBenchmark::run()
         // sequence file is sequential (not random access as matlab structure), 
         // so we must read and discard skiped frames
         for (int i=0; i < m_startInFrame; i++)
-            reader.readImageData(&header, &image);
+            reader.skipImageData(&header);
         
         for (int i=m_startInFrame; i < header.allocatedFrames; i++)
         {

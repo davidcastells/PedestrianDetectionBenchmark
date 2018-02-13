@@ -56,6 +56,7 @@
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
+      <itemPath>README.md</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -81,170 +82,71 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="BoundingBox.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="BoundingBox.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="BoundingBox.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="BoundingBox.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="BufferedImage.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="BufferedImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="BufferedImage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Downloader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Downloader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Downloader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="File.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="File.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="File.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="File.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="HOGFeature.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="HOGFeature.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="HOGFeature.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="HOGFeature.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="HOGProcessor.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="HOGProcessor.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="HOGProcessor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="HOGProcessor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Image.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Image.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Image.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Image.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ImageExtractor.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ImageExtractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Matfile.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Matfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Matfile.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Matfile.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="MatfileReader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="MatfileReader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="MatfileReader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="PedestrianDetectionBenchmark.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="PedestrianDetectionBenchmark.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="PerformanceLap.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="PerformanceLap.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="PerformanceLap.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="PerformanceLap.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ReferenceSubImage.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="ReferenceSubImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ReferenceSubImage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="ReferenceSubImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SeqFileHeader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="SeqFileHeader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SeqFileHeader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="SeqFileHeader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SeqFileReader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="SeqFileReader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SeqFileReader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="XWindow.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="XWindow.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="XWindow.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="XWindow.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="main.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -267,170 +169,71 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="BoundingBox.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="BoundingBox.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="BoundingBox.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="BoundingBox.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="BufferedImage.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="BufferedImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="BufferedImage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Downloader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Downloader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Downloader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="File.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="File.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="File.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="File.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="HOGFeature.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="HOGFeature.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="HOGFeature.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="HOGFeature.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="HOGProcessor.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="HOGProcessor.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="HOGProcessor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="HOGProcessor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Image.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Image.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Image.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Image.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ImageExtractor.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ImageExtractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Matfile.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="Matfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Matfile.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="Matfile.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="MatfileReader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="MatfileReader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="MatfileReader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="PedestrianDetectionBenchmark.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="PedestrianDetectionBenchmark.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="PerformanceLap.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="PerformanceLap.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="PerformanceLap.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="PerformanceLap.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ReferenceSubImage.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="ReferenceSubImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ReferenceSubImage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="ReferenceSubImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SeqFileHeader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="SeqFileHeader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SeqFileHeader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="SeqFileHeader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SeqFileReader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="SeqFileReader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SeqFileReader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="XWindow.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="XWindow.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="XWindow.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="XWindow.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="main.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

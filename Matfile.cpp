@@ -26,6 +26,7 @@
 
 #include "Matfile.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 std::string MatfileHeader::toString()

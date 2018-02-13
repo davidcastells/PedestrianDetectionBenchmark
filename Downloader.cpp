@@ -26,6 +26,9 @@
 #include "Downloader.h"
 #include "File.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 Downloader::Downloader()
 {
 }
@@ -62,13 +65,13 @@ void Downloader::fetchAnnotations()
 
 void Downloader::fetchSet1()
 {
-    File set01Dir(("data/"+m_dataSet+"/set01").c_str());
+    File set01Dir((m_outDir + "/"+m_dataSet+"/set01").c_str());
     
     if (!set01Dir.exists())
     {
         downloadIfNeeded("set01.tar");
-        decompress(("data/"+m_dataSet+"/set01.tar").c_str());
-        remove(("data/"+m_dataSet+"/set01.tar").c_str());
+        decompress((m_outDir + "/"+m_dataSet+"/set01.tar").c_str());
+        remove((m_outDir + "/"+m_dataSet+"/set01.tar").c_str());
     }
     else
         printf("[INFO] Set01 already fetched\n");
@@ -80,9 +83,8 @@ void Downloader::remove(const char* file)
     cmd.append(file);
     //cmd.append(" -d ");
     
-    printf("[EXE]");
-    printf(cmd.c_str());
-    printf("\n");
+    printf("[EXE] %s\n", cmd.c_str());
+    
     
     system(cmd.c_str());
 }
@@ -108,6 +110,8 @@ void Downloader::decompress(const char* file)
         cmd.append(file);
         cmd.append(" -d ");
         cmd.append(m_outDir);
+        cmd.append("/");
+        cmd.append(m_dataSet);
     }
     else if (endsWithCaseInsensitive(std::string(file), std::string(".tar")))
     {
@@ -115,6 +119,8 @@ void Downloader::decompress(const char* file)
         cmd.append(file);
         cmd.append(" -C ");
         cmd.append(m_outDir);
+        cmd.append("/");
+        cmd.append(m_dataSet);
     }
     else
     {
@@ -124,9 +130,8 @@ void Downloader::decompress(const char* file)
     
     
     
-    printf("[EXE]");
-    printf(cmd.c_str());
-    printf("\n");
+    printf("[EXE] %s\n", cmd.c_str());
+    
     
     system(cmd.c_str());
 }
@@ -148,13 +153,13 @@ void Downloader::download(const char* file)
     std::string cmd = "wget ";
     
     cmd.append(m_urlBase);
+    cmd.append(m_dataSet);
+    cmd.append("/");
     cmd.append(file);
     cmd.append(" -P ");
-    cmd.append(m_outDir + "/" + m_dataSet);
+    cmd.append(m_outDir + "/" + m_dataSet + "/");
     
-    printf("[EXE]: ");
-    printf(cmd.c_str());
-    printf("\n");
+    printf("[EXE]: %s\n", cmd.c_str());
     
     system(cmd.c_str());
 }

@@ -26,7 +26,7 @@
 
 #include "MatfileReader.h"
 
-
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <typeinfo>
@@ -201,8 +201,7 @@ void MatfileReader::readHeader()
     
     if (m_verbose > 0)
     {
-        printf(m_header.toString().c_str());
-        printf("\n");
+        printf("%s\n", m_header.toString().c_str());
     }
 }
 
@@ -466,7 +465,7 @@ void MatfileReader::alignTo64Bit()
 
 void MatfileReader::dumpFileOffset()
 {
-    unsigned long long offset = ftell(m_fp);
+    unsigned long int offset = ftell(m_fp);
     printf("File Offset: %08lX\n", offset);
 }
 

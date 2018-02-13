@@ -25,13 +25,15 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "SeqFileReader.h"
 
 // use libjpeg
-#include <jpeglib.h>
 #include <png.h>
+#include <jpeglib.h>
+
 
 SeqFileReader::SeqFileReader(const char* file)
 {
@@ -64,30 +66,30 @@ bool SeqFileReader::isOpen()
 
 unsigned short SeqFileReader::readUSHORT()
 {
-    unsigned short v;
-    fread(&v, sizeof(v) , 1, m_fp);
+    uint16_t v;
+    fread(&v, 2 , 1, m_fp);
     return v;
 }
 
 
 int SeqFileReader::readDWORD()
 {
-    int v;
-    fread(&v, sizeof(v) , 1, m_fp);
+    int32_t v;
+    fread(&v, 4 , 1, m_fp);
     return v;
 }
 
 int SeqFileReader::readLONG()
 {
-    int v;
-    fread(&v, sizeof(v) , 1, m_fp);
+    int32_t v;
+    fread(&v, 4 , 1, m_fp);
     return v;
 }
 
 double SeqFileReader::readDOUBLE()
 {
     double v;
-    fread(&v, sizeof(v) , 1, m_fp);
+    fread(&v, 8, 1, m_fp);
     return v;
 }
 
@@ -129,7 +131,7 @@ void SeqFileReader::scanNextPngStartMarker()
     {
         fread(header, 1, 8, m_fp);
     
-        if (png_sig_cmp((png_const_bytep)header, 0, 8))
+        if (png_sig_cmp((png_byte*)header, 0, 8))
         {
             found = false;
             fseek(m_fp, offset++, SEEK_SET);
@@ -296,7 +298,7 @@ std::string SeqFileReader::readWideCharString(int len)
 {
     wchar_t s[len];
     
-    fread(s, sizeof(wchar_t ) , len, m_fp);
+    fread(s, 2 , len, m_fp);
     
     std::wstring ret = L"";
     ret.append(s);
@@ -340,7 +342,7 @@ void SeqFileReader::readHeader(SeqFileHeader* header)
     header->referenceTimeMS = readUSHORT();
     header->referenceTimeUS = readUSHORT();
     
-    printf(header->toString().c_str());
+    printf("%s", header->toString().c_str());
  
     if (header->compressionFormat != 0)
     {

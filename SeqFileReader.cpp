@@ -102,6 +102,11 @@ void SeqFileReader::skipImageData(SeqFileHeader* header)
         scanNextJpegStartMarker();
         readDWORD();
     }
+    else if (compression == 001 || compression == 002)
+    {
+        scanNextPngStartMarker();
+        readDWORD();
+    }
     else
         assert(false); // readRawImageData(image);
 }
@@ -113,9 +118,7 @@ void SeqFileReader::readImageData(SeqFileHeader* header, Image* image)
     if (compression == 102 || compression == 201)
         readJpegImageData(header, image);
     else if (compression == 001 || compression == 002)
-    {
         readPngImageData(header, image);
-    }
     else
         readRawImageData(image);
 }

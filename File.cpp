@@ -23,10 +23,13 @@
  * 
  * Created on February 1, 2018, 11:45 AM
  */
+#include "File.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
-#include "File.h"
+
 
 File::File(const char* path)
 {
@@ -70,9 +73,7 @@ void File::mkdirs()
     std::string cmd = "mkdir ";
     cmd.append(m_path);
     
-    printf("[EXE]: ");
-    printf(cmd.c_str());
-    printf("\n");
+    printf("[EXE]: %s\n", cmd.c_str());
     
     system(cmd.c_str());
 }

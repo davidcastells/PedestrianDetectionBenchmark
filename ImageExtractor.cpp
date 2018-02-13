@@ -218,7 +218,7 @@ void ImageExtractor::saveImageAsPng(const char* filename, Image* image)
    png_write_info(png_ptr, info_ptr);
    
    // Allocate memory for one row (3 bytes per pixel - RGB)
-   row = (png_bytep) malloc(3 * image->m_width * sizeof(png_byte));
+   row = new png_byte[3 * image->m_width];
 
    // Write image data
    int x, y;
@@ -240,7 +240,7 @@ void ImageExtractor::saveImageAsPng(const char* filename, Image* image)
    if (fp != NULL) fclose(fp);
    if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
    if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-   if (row != NULL) free(row);
+   if (row != NULL) delete row;
 
    // return code;
 }

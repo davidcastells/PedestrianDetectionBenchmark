@@ -26,7 +26,11 @@ Compile
 
 We use Netbeans 8.2 to manage the project.
 
-From the commandline a simple make would compile the project.
+If Netbeans project is correctly working, you can also compile from the commandline a simple 
+<pre>make</pre>
+
+Otherwise you can also compile with
+<pre>g++ -g -std=c++14 *.cpp -o pedestriandetectionbenchmark -ljpeg -lpng -lm -lX11 </pre>
 
 Usage
 -----

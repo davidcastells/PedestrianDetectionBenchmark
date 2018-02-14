@@ -47,6 +47,8 @@ public:
     unsigned int m_imageHeight;
     unsigned int m_numCellsX;
     unsigned int m_numCellsY;
+    
+    int m_objId;
 };
 
 #endif /* HOGFEATURE_H */

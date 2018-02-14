@@ -71,6 +71,12 @@ unsigned short SeqFileReader::readUSHORT()
     return v;
 }
 
+void SeqFileReader::skipBytes(int bytes)
+{
+    long int offset = ftell(m_fp);
+    offset += bytes;
+    fseek(m_fp, offset, SEEK_SET);
+}
 
 int SeqFileReader::readDWORD()
 {
@@ -100,15 +106,18 @@ void SeqFileReader::skipImageData(SeqFileHeader* header)
     if (compression == 102 || compression == 201)
     {
         scanNextJpegStartMarker();
-        readDWORD();
+        skipBytes(header->imageSizeBytes/25);
     }
     else if (compression == 001 || compression == 002)
     {
         scanNextPngStartMarker();
-        readDWORD();
+        skipBytes(header->imageSizeBytes/20);
     }
     else
-        assert(false); // readRawImageData(image);
+    {
+        printf("[ERROR] compression format (%d) not supported\n", compression);
+        exit(-1);
+    }
 }
 
 void SeqFileReader::readImageData(SeqFileHeader* header, Image* image)

@@ -42,6 +42,7 @@ public:
     HOGFeature* createFeature(Image* image);
     Image* createHOGVisualization(HOGFeature* feature);
     std::vector<Image*> createHogImages(std::vector<Image*> images);
+    std::vector<HOGFeature*> createHogFeatures(std::vector<Image*> images);
 
 protected:
     void computeGradient(Image* image, HOGFeature* feature, int xcell, int ycell, int colorChannel);

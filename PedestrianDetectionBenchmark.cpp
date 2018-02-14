@@ -78,7 +78,7 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doResizePersonsY = 128;
     m_fps = -1;
     
-    for (int i=0; i < argc; i++)
+    for (int i=1; i < argc; i++)
     {
         if (strcmp(args[i], "--help") == 0)
             m_doUsage = true;
@@ -92,6 +92,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_doExtractAnnotatedPersons = true;
         else if (strcmp(args[i], "--extract-hog-persons") == 0)
             m_doExtractHogPersons = true;
+        else if (strcmp(args[i], "--extract-hog-features") == 0)
+            m_doExtractHogFeatures = true;
         else if (strcmp(args[i], "--resize-persons-as") == 0)
         {
             m_doResizePersons = true;
@@ -133,6 +135,7 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
         else
         {
             printf("[WARNING] Unrecognized option= %s\n", args[i]);
+            exit(-1);
         }
     }
 }
@@ -209,7 +212,10 @@ void PedestrianDetectionBenchmark::run()
         // sequence file is sequential (not random access as matlab structure), 
         // so we must read and discard skiped frames
         for (int i=0; i < m_startInFrame; i++)
+        {
             reader.skipImageData(&header);
+            printf("skiping frame %d\n", i);
+        }
         
         for (int i=m_startInFrame; i < header.allocatedFrames; i++)
         {
@@ -259,27 +265,34 @@ void PedestrianDetectionBenchmark::run()
                 extractor.extractFrame();
             }
             
-            if (m_doExtractAnnotatedPersons | m_doExtractHogPersons)
+            if (m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractHogFeatures)
             {
+                std::vector<Image*> inputPersons;
+                
                 if (m_doResizePersons)
                 {
                     std::vector<Image*> persons = extractor.getPersonsHigher(centeredBoxes, m_minPersonHeight);
-                    std::vector<Image*> resized = extractor.resizePersons(persons);
-                    
-                    if (m_doExtractAnnotatedPersons)
-                    {
-                        extractor.savePersons(resized);
-                    }
-                    if (m_doExtractHogPersons)
-                    {
-                        std::vector<Image*> hogs = hogProcess.createHogImages(resized);
-                        extractor.saveHogPersons(hogs);                        
-                    }
+                    inputPersons = extractor.resizePersons(persons);
                 }
                 else
                 {
-                    std::vector<Image*> persons = extractor.getPersonsHigher(boxes, m_minPersonHeight);
-                    extractor.savePersons(persons);
+                    inputPersons = extractor.getPersonsHigher(centeredBoxes, m_minPersonHeight);
+                }
+                
+                
+                if (m_doExtractAnnotatedPersons)
+                {
+                    extractor.savePersons(inputPersons);
+                }
+                if (m_doExtractHogFeatures)
+                {
+                    std::vector<HOGFeature*> hogs = hogProcess.createHogFeatures(inputPersons);
+                    extractor.saveHogFeatures(hogs);                        
+                }
+                if (m_doExtractHogPersons)
+                {
+                    std::vector<Image*> hogs = hogProcess.createHogImages(inputPersons);
+                    extractor.saveHogPersons(hogs);                        
                 }
             }
 
@@ -325,6 +338,9 @@ void PedestrianDetectionBenchmark::usage()
     printf("\n");
     printf("--extract-hog-persons\n");
     printf("\tExtract the pictures from the good (non occluded) persons as HOG\n");
+    printf("\n");
+    printf("--extract-hog-features\n");
+    printf("\tExtract the HOG features from the good (non occluded) persons\n");
     printf("\n");    
     printf("--zoom <n>\n");
     printf("\tSets the window zoom\n");
@@ -339,7 +355,7 @@ void PedestrianDetectionBenchmark::usage()
     printf("--fps <n>\n");
     printf("\tPlayback frames per second\n");
     printf("\n");
-    printf("--resize-person-as <x> <y>\n");
+    printf("--resize-persons-as <x> <y>\n");
     printf("\tResize persons to x * y resolution. Used in conjuntion with \n");
     printf("\t--extract-annotated-persons \n");
     printf("--yuv\n");

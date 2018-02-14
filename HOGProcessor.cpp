@@ -61,8 +61,24 @@ std::vector<Image*> HOGProcessor::createHogImages(std::vector<Image*> images)
     return ret;
 }
 
+std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> images)
+{
+    std::vector<HOGFeature*> ret;
+    
+    for (int i=0; i<images.size(); i++)
+    {
+        Image* person = images.at(i);
+        HOGFeature* feature = createFeature(person);
+        
+        ret.push_back(feature);
+    }
+    return ret;
+}
+
 /**
  * Create a HOG feature from an Image
+ * @todo this is incorrectly generating a HOG vector because it does not 
+ * handle blocks
  * @param image
  * @return 
  */
@@ -85,15 +101,18 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
                 
                 computeHistogram(pBin);
             }
-        
-        
-
     }
+    
+    feature->m_objId = image->m_objId;    // copy the object ID for correct naming
     
     return feature;
 }
 
 
+/**
+ * @todo fix the border cases (they should contribute to the other extreme)
+ * @param pBin
+ */
 void HOGProcessor::computeHistogram(unsigned int* pBin)
 {
     double pi = 3.14159265359;
@@ -185,6 +204,7 @@ void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xcell,
 
 /**
  * Build a visualization of the HOG feature, we ignore the overlapped cells
+ * @todo handle blocks
  * @param feature
  * @return 
  */
@@ -234,103 +254,4 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
             }
     
     return image;
-}
-
-/**
- * Compute Histogram of Oriented Gradients
- * Cells are windows of 8x8 pixels
- */
-void computeHog(unsigned char* frame, int capturedWidth, int capturedHeight, int* hogFrame, int xCells, int yCells)
-{
-	// gradients are short (not char) because we need 10 bits 
-	short gradientx[8*8];
-	short gradienty[8*8];
-	
-	for (int ycell=0; ycell < yCells; ycell++)
-		for (int xcell = 0; xcell < xCells; xcell++)
-		{
-			// compute the gradients 
-			// [-1, 0, 1] for horizontal and vertical gradients
-			for (int y=0; y < 8; y++)
-				for (int x=0; x < 8; x++)
-				{
-					int fx = xcell * 8 + x;
-					int fy = ycell * 8 + y;
-			
-					int fx_m1 = (x > 0)? (fx-1) : fx;
-					int fx_p1 = (fx < (capturedWidth-1))? (fx+1) : fx;
-					int fy_m1 = (y > 0)? (fy-1) : fy;
-					int fy_p1 = (fy < (capturedHeight-1))? (fy+1) : fy;
-					
-					gradientx[x+y*8] = -frame[fx_m1+fy*capturedWidth] + frame[fx_p1+fy*capturedWidth];
-					gradienty[x+y*8] = -frame[fx+fy_m1*capturedWidth] + frame[fx+fy_p1*capturedWidth];
-				}
-				
-			// clear the histogram bins for this cell
-			for (int bin = 0; bin < 9; bin++)
-				hogFrame[bin + (xcell + ycell*xCells)*9] = 0;
-				
-			double pi = 3.14159265359;
-			double pi18 = pi / 18.0;
-					
-			// Now compute magnitude and orientation (rectangular to polar coordinates)
-			for (int y=0; y < 8; y++)
-				for (int x=0; x < 8; x++)
-				{
-					double mag = sqrt((gradientx[x+y*8] * gradientx[x+y*8]) + (gradienty[x+y*8] * gradienty[x+y*8]));
-					double orientation = atan2(gradienty[x+y*8], gradientx[x+y*8]);
-					
-					if (mag == 0)
-						// avoid wasting time for mag = 0
-						continue;
-					
-					if (orientation < 0)
-						orientation = pi - orientation;
-					if (orientation > pi)
-						orientation = orientation - pi;
-						
-					//printf("mag: %d ori: %f\n", mag, orientation);
-					
-					// now select the bins where we should aggregate the values
-					
-					
-					int bin0 = -1;	// -1 means no bin is used
-					int bin1 = -1;	// 
-					
-					bin0 = (orientation - pi18) / (2*pi18);		// bin0 will automanically be negative for orientation < pi18
-					bin1 = bin0 + 1;
-					
-					
-					
-					if (orientation < pi18)
-					{
-						bin0 = -1;
-						bin1 = 0;
-					}
-					
-					double bin0center = (bin0 * (2*pi18)) + pi18;
-					double bin1center = (bin1 * (2*pi18)) + pi18;
-					
-					//printf("bin0 center: %f bin1 center: %f\n", bin0center, bin1center);
-					
-					if (bin1 > 8)
-						bin1 = -1;
-					
-					// weight 0 is computed as the factor of the distance from bin1 center with the bin width
-					double w0 = (bin1center - orientation) / (2*pi18);
-					// weight 1 is computed as the factor of the distance from bin0 center with the bin width
-					double w1 = (orientation - bin0center) / (2*pi18);
-					
-					//if (bin0 >= 0)
-						//printf("bin0. bin[%d] = %d * %f = %d\n", bin0, mag, w0, (int)(mag*w0));
-					//if (bin1 >= 0)
-						//printf("bin1. bin[%d] = %d * %f = %d\n", bin1, mag, w1, (int)(mag*w1));
-						
-					// Finally add the computed values if bins are valid
-					if (bin0 >= 0)
-						hogFrame[bin0 + (xcell + ycell*xCells)*9] += mag * w0;
-					if (bin1 >= 0)
-						hogFrame[bin1 + (xcell + ycell*xCells)*9] += mag * w1;
-				}
-		}
 }

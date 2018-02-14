@@ -34,6 +34,11 @@
 
 /**
  * Seq File Reader
+ * This class implements a simple Norpix Seq File Reader / Parser.
+ * Its aim is only to be able to decode Caltech data, so we are not expecting
+ * to use it for other purposes, although I guess it could be useful in 
+ * other applications
+ * 
  * Some inspiration from
  * https://github.com/soft-matter/pims/blob/master/pims/norpix_reader.py
  * https://github.com/pdollar/toolbox/blob/master/videos/seqReaderPlugin.m

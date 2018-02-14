@@ -54,6 +54,11 @@
 
 
 /**
+ * This class implements a simple Matlab File (Matfile) Parser.
+ * Its aim is only to be able to decode Caltech data, so we are not expecting
+ * to use it for other purposes, although I guess it could be useful in 
+ * other applications
+ * 
  * Info from
  * https://www.mathworks.com/help/pdf_doc/matlab/matfile_format.pdf
  */

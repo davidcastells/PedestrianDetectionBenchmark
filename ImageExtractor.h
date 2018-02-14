@@ -29,6 +29,7 @@
 
 #include "BoundingBox.h"
 #include "Image.h"
+#include "HOGFeature.h"
 
 #include <vector>
 #include <string>
@@ -46,7 +47,9 @@ public:
     void extractFrame();
     void savePersons(std::vector<Image*> persons);
     void saveHogPersons(std::vector<Image*> persons);
+    void saveHogFeatures(std::vector<HOGFeature*> persons);
     void saveImageAsPng(const char* file, Image* image);
+    void saveHogFeatureAsCsv(const char* filename, HOGFeature* feature);
     std::vector<Image*> getPersonsHigher(std::vector<BoundingBox> boxes, int minHeight);
     std::vector<Image*> resizePersons(std::vector<Image*> persons);
     

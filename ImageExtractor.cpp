@@ -27,6 +27,7 @@
 #include "File.h"
 #include "ReferenceSubImage.h"
 #include "BufferedImage.h"
+#include "HOGFeature.h"
 
 #include <png.h>
 
@@ -123,6 +124,20 @@ std::vector<Image*> ImageExtractor::resizePersons(std::vector<Image*> persons)
     return ret;
 }
 
+void ImageExtractor::saveHogFeatures(std::vector<HOGFeature*> persons)
+{
+    for (int i=0; i < persons.size(); i++)
+    {
+        HOGFeature* feature = persons.at(i);
+        
+        std::string outFile = format("%s/frame%d_%s%d_hog.csv", m_extractionPath.c_str(), m_frameNumber, "person", feature->m_objId);
+        
+        printf("Saving %s..\n", outFile.c_str());
+        saveHogFeatureAsCsv(outFile.c_str(), feature);
+        
+    }
+}
+
 void ImageExtractor::saveHogPersons(std::vector<Image*> persons)
 {
     for (int i=0; i < persons.size(); i++)
@@ -148,6 +163,40 @@ void ImageExtractor::savePersons(std::vector<Image*> persons)
         saveImageAsPng(outFile.c_str(), image);
         
     }
+}
+
+/**
+ * @todo HOG is not computed/saved correctly, use blocks as well
+ * @param filename
+ * @param feature
+ */
+void ImageExtractor::saveHogFeatureAsCsv(const char* filename, HOGFeature* feature)
+{
+    FILE* fp = fopen(filename, "w");
+    
+    fprintf(fp, "Image Width; Image Height; Cell Width; Cell Height;\n");
+    fprintf(fp, "%d;%d;%d;%d;\n", feature->m_imageWidth, feature->m_imageHeight, 
+            feature->m_numCellsX, feature->m_numCellsY);
+    
+    fprintf(fp, "color; cell x; celly; bin0; bin1; bin2; bin3; bin4; bin5; bin6; bin7; bin8;\n");
+    
+    for (int c=0; c < 3; c++)
+        for (int y=0; y < feature->m_numCellsY; y++)
+            for (int x=0; x < feature->m_numCellsX; x++)
+            {
+                unsigned int* pBin = feature->getBin(x, y, c);
+                
+                fprintf(fp, "%d; %d; %d; ", c, x, y);
+                
+                for (int i=0; i < 9; i++)
+                    fprintf(fp, "%d; ", pBin[i]);
+                
+                fprintf(fp, "\n");
+            }
+    
+    
+    
+    fclose(fp);
 }
 
 /**

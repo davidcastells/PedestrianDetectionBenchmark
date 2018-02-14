@@ -48,6 +48,7 @@ public:
     int readDWORD();
     int readLONG();
     double readDOUBLE();
+    void skipBytes(int bytes);
     
     std::string readWideCharString(int len);
     void scanNextPngStartMarker();

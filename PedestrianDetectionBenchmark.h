@@ -54,6 +54,7 @@ protected:
     bool m_doExtractFrames;
     bool m_doExtractAnnotatedPersons;
     bool m_doExtractHogPersons;
+    bool m_doExtractHogFeatures;
     bool m_doMaxFps;
     bool m_doYuv;
     bool m_doRotateHog;

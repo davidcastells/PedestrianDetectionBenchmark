@@ -29,15 +29,18 @@
 
 class HOGFeature {
 public:
-    HOGFeature(int width, int height);
+    HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellHeight, int blockWidth, int blockHeight, int colorChannels);
     //HOGFeature(const HOGFeature& orig);
     virtual ~HOGFeature();
 
 public:
-    unsigned int* getBin(int x, int y, int color);
-    int getCellX(int xcell);
-    int getCellY(int xcell);
-    
+    unsigned int* getBin(int blockx, int blocky, int cellx, int celly, int color);
+    int getImageXFromCellIndexX(int xblock, int xcell);
+    int getImageYFromCellIndexY(int yblock, int xcell);
+    int getCellsInAxisX();
+    int getCellsInAxisY();
+    int getBlocksInAxisX();
+    int getBlocksInAxisY();
     
 public:
     /** It contains 3 hog features (1 for each color channel) */
@@ -45,8 +48,17 @@ public:
     
     unsigned int m_imageWidth;
     unsigned int m_imageHeight;
-    unsigned int m_numCellsX;
-    unsigned int m_numCellsY;
+//    unsigned int m_numCellsX;
+//    unsigned int m_numCellsY;
+    unsigned int m_numBlocksX;
+    unsigned int m_numBlocksY;
+    
+    unsigned int m_colorChannels;
+    
+    unsigned int m_cellWidth;
+    unsigned int m_cellHeight;
+    unsigned int m_blockWidth;
+    unsigned int m_blockHeight;
     
     int m_objId;
 };

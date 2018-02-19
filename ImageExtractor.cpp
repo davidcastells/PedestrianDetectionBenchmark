@@ -138,13 +138,18 @@ void ImageExtractor::saveHogFeatures(std::vector<HOGFeature*> persons)
     }
 }
 
+/**
+ * Save the HOG visualitzation images from persons
+ * @param persons
+ */
 void ImageExtractor::saveHogPersons(std::vector<Image*> persons)
 {
     for (int i=0; i < persons.size(); i++)
     {
         Image* image = persons.at(i);
         
-        std::string outFile = format("%s/frame%d_%s%d_hog.png", m_extractionPath.c_str(), m_frameNumber, "person", image->m_objId);
+        std::string outFile = format("%s/frame%d_%s%d_%shog.png", m_extractionPath.c_str(), 
+                m_frameNumber, "person", image->m_objId, (m_rotateHog)? "R":"");
         
         printf("Saving %s..\n", outFile.c_str());
         saveImageAsPng(outFile.c_str(), image);
@@ -166,7 +171,6 @@ void ImageExtractor::savePersons(std::vector<Image*> persons)
 }
 
 /**
- * @todo HOG is not computed/saved correctly, use blocks as well
  * @param filename
  * @param feature
  */
@@ -174,25 +178,28 @@ void ImageExtractor::saveHogFeatureAsCsv(const char* filename, HOGFeature* featu
 {
     FILE* fp = fopen(filename, "w");
     
-    fprintf(fp, "Image Width; Image Height; Cell Width; Cell Height;\n");
-    fprintf(fp, "%d;%d;%d;%d;\n", feature->m_imageWidth, feature->m_imageHeight, 
-            feature->m_numCellsX, feature->m_numCellsY);
+    fprintf(fp, "Image Width; Image Height; Block Width; Block Height; Cell Width; Cell Height;\n");
+    fprintf(fp, "%d;%d;%d;%d;%d;%d;\n", feature->m_imageWidth, feature->m_imageHeight, 
+            feature->m_blockWidth, feature->m_blockHeight,
+            feature->m_cellWidth, feature->m_cellHeight);
     
-    fprintf(fp, "color; cell x; celly; bin0; bin1; bin2; bin3; bin4; bin5; bin6; bin7; bin8;\n");
+    fprintf(fp, "color; block x; block y; cell x; celly; bin0; bin1; bin2; bin3; bin4; bin5; bin6; bin7; bin8;\n");
     
     for (int c=0; c < 3; c++)
-        for (int y=0; y < feature->m_numCellsY; y++)
-            for (int x=0; x < feature->m_numCellsX; x++)
-            {
-                unsigned int* pBin = feature->getBin(x, y, c);
-                
-                fprintf(fp, "%d; %d; %d; ", c, x, y);
-                
-                for (int i=0; i < 9; i++)
-                    fprintf(fp, "%d; ", pBin[i]);
-                
-                fprintf(fp, "\n");
-            }
+        for (int by = 0; by < feature->m_numBlocksY; by++)
+            for (int bx = 0; bx < feature->m_numBlocksX; bx++)
+                for (int y=0; y < feature->m_blockHeight; y++)
+                    for (int x=0; x < feature->m_blockWidth; x++)
+                    {
+                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+
+                        fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
+
+                        for (int i=0; i < 9; i++)
+                            fprintf(fp, "%d; ", pBin[i]);
+
+                        fprintf(fp, "\n");
+                    }
     
     
     

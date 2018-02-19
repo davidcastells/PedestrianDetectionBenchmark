@@ -61,6 +61,7 @@ public:
     bool m_resize;
     int m_resizeX;
     int m_resizeY;
+    bool m_rotateHog;
 };
 
 #endif /* IMAGEEXTRACTOR_H */

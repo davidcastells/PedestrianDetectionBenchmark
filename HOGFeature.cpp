@@ -29,37 +29,97 @@
 #include <assert.h>
 #include <stdio.h>
 
-HOGFeature::HOGFeature(int imageWidth, int imageHeight)
+
+/**
+ * 
+ * @param imageWidth
+ * @param imageHeight
+ * @param cellWidth
+ * @param cellHeight
+ * @param blockWidth number of cells that form a block
+ * @param blockHeight
+ */
+HOGFeature::HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellHeight, int blockWidth, int blockHeight, int colorChannels)
 {
-    int cellWidth = 8;
-    int cellHeight = 8;
-    
     assert(imageWidth % cellWidth == 0);
     assert(imageHeight % cellHeight == 0);
+    assert(imageWidth % (cellWidth*blockWidth) == 0);
+    assert(imageHeight % (cellHeight*blockHeight) == 0);
+
     
     m_imageWidth = imageWidth;
     m_imageHeight = imageHeight;
-    m_numCellsX = (imageWidth / cellWidth) * 2 -1;
-    m_numCellsY = (imageHeight / cellHeight) * 2 -1;
     
-    m_buffer = new unsigned int[m_numCellsX*m_numCellsY*3*9];
+    m_cellWidth = cellWidth;
+    m_cellHeight = cellHeight;
+    m_blockWidth = blockWidth;
+    m_blockHeight = blockHeight;
     
-    for (int i=0; i < m_numCellsX*m_numCellsY*3*9; i++)
+    m_colorChannels = colorChannels;
+    
+    int cellsInXAxis = imageWidth / cellWidth;      // how many cells fit in image width
+    int cellsInYAxis = imageHeight / cellHeight;
+    
+    int blocksInXAxis = cellsInXAxis / blockWidth;  // how many blocks fit in image width
+    int blocksInYAxis = cellsInYAxis / blockHeight; // how many blocks fit in image height
+    
+    m_numBlocksX = blocksInXAxis * 2 - 1;
+    m_numBlocksY = blocksInYAxis * 2 - 1;
+    
+//    m_numCellsX = (imageWidth / cellWidth) * 2 -1;
+//    m_numCellsY = (imageHeight / cellHeight) * 2 -1;
+    
+    int cellsPerRow = (m_numBlocksX * m_blockWidth);
+    int cellsPerCol = (m_numBlocksY * m_blockHeight);
+    
+    m_buffer = new unsigned int[cellsPerRow*cellsPerCol*3*9];
+    
+    for (int i=0; i < cellsPerRow*cellsPerCol*m_colorChannels*9; i++)
         m_buffer[i] = 0;
     
 }
 
+int HOGFeature::getCellsInAxisX()
+{
+    return m_imageWidth / m_cellWidth;      // how many cells fit in image width
+}
+
+int HOGFeature::getCellsInAxisY()
+{
+    return m_imageHeight / m_cellHeight;
+}
+
+int HOGFeature::getBlocksInAxisX()
+{
+    return getCellsInAxisX() / m_blockWidth;  // how many blocks fit in image width
+}
+
+int HOGFeature::getBlocksInAxisY()
+{
+    return getCellsInAxisY() / m_blockHeight; // how many blocks fit in image height
+}
+
+
+
 /**
- * Return the starting address of the cell
+ * Return the starting x position to the first pixel of the cell x index
  * @param xcell
  * @return 
  */
-int HOGFeature::getCellX(int xcell)
+int HOGFeature::getImageXFromCellIndexX(int xblock, int xcell)
 {
-    if ((xcell * 8) >= m_imageWidth)
-        return (xcell * 8) - m_imageWidth + 4;
-    else
-        return (xcell * 8);
+    int blx = getBlocksInAxisX();
+    int cellx = xcell;
+    
+    if (xblock >= blx)
+    {
+        xblock -= blx;
+        cellx++;
+    }
+    
+    cellx += xblock * m_blockWidth;
+        
+    return cellx * m_cellWidth;
 }
 
 /**
@@ -67,17 +127,30 @@ int HOGFeature::getCellX(int xcell)
  * @param ycell
  * @return 
  */
-int HOGFeature::getCellY(int ycell)
+int HOGFeature::getImageYFromCellIndexY(int yblock, int ycell)
 {
-    if ((ycell * 8) >= m_imageHeight)
-        return (ycell * 8) - m_imageHeight + 4;
-    else
-        return (ycell * 8);
+    int bly = getBlocksInAxisY();
+    int celly = ycell;
+    
+    if (yblock >= bly)
+    {
+        yblock -= bly;
+        celly++;
+    }
+    
+    celly += yblock * m_blockHeight;
+        
+    return celly * m_cellHeight;
 }
 
-unsigned int* HOGFeature::getBin(int x, int y, int color)
+unsigned int* HOGFeature::getBin(int blockx, int blocky, int cellx, int celly, int color)
 {
-    int index = color * (m_numCellsX*m_numCellsY) + (y*m_numCellsX) + x;
+    int indexX = (blockx * m_blockWidth) + cellx;   // number of cell x
+    int indexY = (blocky * m_blockHeight) + celly;  // number of cell y
+    int cellsPerRow = (m_numBlocksX * m_blockWidth);
+    int cellsPerCol = (m_numBlocksY * m_blockHeight);
+    
+    int index = color * (cellsPerRow*cellsPerCol) + (indexY*cellsPerRow) + indexX;
     return &m_buffer[index*9];
 }
 

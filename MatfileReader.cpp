@@ -447,10 +447,6 @@ MatlabStructRow* MatfileReader::readStructRow(int numFields)
     return st;
 }
 
-
-
-
-
 void MatfileReader::alignTo64Bit()
 {
     unsigned long long offset = ftell(m_fp);

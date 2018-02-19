@@ -47,7 +47,7 @@ void Downloader::setURLBase(const char* base)
 }
 
 /**
- * @todo do not hardcode the path
+ * Fetch the annotations from the dataset
  */
 void Downloader::fetchAnnotations()
 {

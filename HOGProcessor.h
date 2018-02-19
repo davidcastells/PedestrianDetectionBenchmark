@@ -32,10 +32,15 @@
 
 #include <vector>
 
-class HOGProcessor {
+/**
+ * This class is the responsible for creating HOG features from images
+ */
+class HOGProcessor 
+{
 public:
     HOGProcessor();
-    HOGProcessor(const HOGProcessor& orig);
+    HOGProcessor(int cellWidth, int cellHeight, int blockWidth, int blockHeight);
+
     virtual ~HOGProcessor();
     
 public:
@@ -45,7 +50,7 @@ public:
     std::vector<HOGFeature*> createHogFeatures(std::vector<Image*> images);
 
 protected:
-    void computeGradient(Image* image, HOGFeature* feature, int xcell, int ycell, int colorChannel);
+    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel);
     void computeHistogram(unsigned int* pBin);
     void getCellX();
     void getCellY();
@@ -56,7 +61,11 @@ private:
     // gradients are short (not char) because we need 10 bits 
     short m_gradientx[8*8];
     short m_gradienty[8*8];
-    
+
+    int m_cellWidth;
+    int m_cellHeight;
+    int m_blockWidth;
+    int m_blockHeight;    
 };
 
 #endif /* HOGPROCESSOR_H */

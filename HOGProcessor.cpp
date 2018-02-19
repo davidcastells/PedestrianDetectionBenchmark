@@ -32,19 +32,41 @@
 #include <math.h>
 #include <vector>
 
-
 HOGProcessor::HOGProcessor()
 {
+    m_cellWidth = 8;
+    m_cellHeight = 8;
+    m_blockWidth = 2;
+    m_blockHeight = 2;
 }
 
-HOGProcessor::HOGProcessor(const HOGProcessor& orig)
+/**
+ * HOG Processor
+ * 
+ * @param cellWidth cell width in pixels
+ * @param cellHeight cell height in pixels
+ * @param blockWidth block width in cells
+ * @param blockHeight block height in cells
+ */
+HOGProcessor::HOGProcessor(int cellWidth, int cellHeight, int blockWidth, int blockHeight)
 {
+    m_cellWidth = cellWidth;
+    m_cellHeight = cellHeight;
+    m_blockWidth = blockWidth;
+    m_blockHeight = blockHeight;
 }
+
+
 
 HOGProcessor::~HOGProcessor()
 {
 }
 
+/**
+ * Create a set of images to visualize the HOG features from input images
+ * @param images
+ * @return 
+ */
 std::vector<Image*> HOGProcessor::createHogImages(std::vector<Image*> images)
 {
     std::vector<Image*> ret;
@@ -61,6 +83,11 @@ std::vector<Image*> HOGProcessor::createHogImages(std::vector<Image*> images)
     return ret;
 }
 
+/**
+ * Create HOG features from a set of input images
+ * @param images
+ * @return 
+ */
 std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> images)
 {
     std::vector<HOGFeature*> ret;
@@ -77,30 +104,32 @@ std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> ima
 
 /**
  * Create a HOG feature from an Image
- * @todo this is incorrectly generating a HOG vector because it does not 
- * handle blocks
+ * @todo handle color channels
  * @param image
  * @return 
+ * 
  */
 HOGFeature* HOGProcessor::createFeature(Image* image)
 {
-    HOGFeature* feature = new HOGFeature(image->m_width, image->m_height);
+    HOGFeature* feature = new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, 3);
     
     for (int colorChannel = 0; colorChannel < 3; colorChannel++)
     {
-        for (int ycell=0; ycell < feature->m_numCellsY; ycell++)
-            for (int xcell = 0; xcell < feature->m_numCellsX; xcell++)
-            {
-                computeGradient(image, feature, xcell, ycell, colorChannel);
+        for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
+                for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
+                    for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
+                    {
+                        computeGradient(image, feature, xblock, yblock, xcell, ycell, colorChannel);
 
-                // clear the histogram bins for this cell
-                unsigned int* pBin = feature->getBin(xcell, ycell, colorChannel);
+                        // clear the histogram bins for this cell
+                        unsigned int* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
 
-                for (int bin = 0; bin < 9; bin++)
-                    pBin[bin] = 0;
-                
-                computeHistogram(pBin);
-            }
+                        for (int bin = 0; bin < 9; bin++)
+                            pBin[bin] = 0;
+
+                        computeHistogram(pBin);
+                    }
     }
     
     feature->m_objId = image->m_objId;    // copy the object ID for correct naming
@@ -181,15 +210,23 @@ void HOGProcessor::computeHistogram(unsigned int* pBin)
 
 
 
-void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xcell, int ycell, int colorChannel)
+/**
+ * 
+ * @param image
+ * @param feature
+ * @param xcell
+ * @param ycell
+ * @param colorChannel
+ */
+void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel)
 {
     // compute the gradients 
     // [-1, 0, 1] for horizontal and vertical gradients
     for (int y=0; y < 8; y++)
         for (int x=0; x < 8; x++)
         {
-            int fx = feature->getCellX(xcell) + x;
-            int fy = feature->getCellY(ycell) + y;
+            int fx = feature->getImageXFromCellIndexX(xblock, xcell) + x;
+            int fy = feature->getImageYFromCellIndexY(yblock, ycell) + y;
 
             int fx_m1 = (x > 0)? (fx-1) : fx;
             int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
@@ -204,7 +241,7 @@ void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xcell,
 
 /**
  * Build a visualization of the HOG feature, we ignore the overlapped cells
- * @todo handle blocks
+ * @todo what to display for cells that have multiple contributions from different blocks?
  * @param feature
  * @return 
  */
@@ -221,37 +258,41 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
     
     // if global normalization
     for (int colorChannel =0 ; colorChannel < 3; colorChannel++)
-        for (int ycell=0; ycell < feature->m_imageHeight/8; ycell++)
-            for (int xcell = 0; xcell < feature->m_imageWidth/8; xcell++)
-            {    
-                unsigned int* pBin = feature->getBin(xcell, ycell, colorChannel);
-                for (int i=0; i < 9; i++)
-                {
-                    if (pBin[i] > maxNormalization)
-                        maxNormalization = pBin[i];
-                }
-            }    
+        for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
+                for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
+                    for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
+                    {    
+                        unsigned int* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
+                        for (int i=0; i < 9; i++)
+                        {
+                            if (pBin[i] > maxNormalization)
+                                maxNormalization = pBin[i];
+                        }
+                    }    
     
     maxNormalization = 255 / maxNormalization;
     
     for (int colorChannel =0 ; colorChannel < 3; colorChannel++)
-        for (int ycell=0; ycell < feature->m_imageHeight/8; ycell++)
-            for (int xcell = 0; xcell < feature->m_imageWidth/8; xcell++)
-            {    
-                unsigned int* pBin = feature->getBin(xcell, ycell, colorChannel);
+        for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
+                for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
+                    for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
+                    {    
+                        unsigned int* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
 
-                ReferenceSubImage window(image, feature->getCellX(xcell), feature->getCellY(ycell), 8, 8);
+                        ReferenceSubImage window(image, feature->getImageXFromCellIndexX(xblock, xcell), feature->getImageYFromCellIndexY(yblock, ycell), 8, 8);
 
-                double angle = pi18;
-                for (int i=0; i < 9; i++)
-                {
-                    if (m_rotateHog)
-                        window.drawAngleLine(angle+pi2, pBin[i] * maxNormalization, colorChannel);
-                    else
-                        window.drawAngleLine(angle, pBin[i] * maxNormalization, colorChannel);
-                    angle += pi9;
-                }
-            }
+                        double angle = pi18;
+                        for (int i=0; i < 9; i++)
+                        {
+                            if (m_rotateHog)
+                                window.drawAngleLine(angle+pi2, pBin[i] * maxNormalization, colorChannel);
+                            else
+                                window.drawAngleLine(angle, pBin[i] * maxNormalization, colorChannel);
+                            angle += pi9;
+                        }
+                    }
     
     return image;
 }

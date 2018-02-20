@@ -28,6 +28,7 @@
 #include "ReferenceSubImage.h"
 #include "BufferedImage.h"
 #include "HOGFeature.h"
+#include "BoundingBox.h"
 
 #include <png.h>
 
@@ -71,6 +72,46 @@ void ImageExtractor::extractFrame()
     saveImageAsPng(outFile.c_str(), m_image);
 }
 
+BoundingBox ImageExtractor::createRandomBox(int w, int h, int boxx, int boxy)
+{
+    BoundingBox b(0, 0, 0, 0, false);
+    
+    int maxx = w - boxx;
+    int maxy = h - boxy;
+    
+    b.m_width = boxx;
+    b.m_height = boxy;
+    
+    b.m_x = rand() % maxx;
+    b.m_y = rand() % maxy;
+    
+    return b;
+}
+
+std::vector<Image*> ImageExtractor::getNonPersons(std::vector<BoundingBox> boxes)
+{
+    std::vector<Image*> ret;
+    int imagesToExtract = boxes.size();
+    int imagesExtracted = 0;
+    Image* image;
+    
+    do
+    {
+        // create a random box
+        BoundingBox box = createRandomBox(m_image->m_width, m_image->m_height, m_resizeX, m_resizeY);
+        
+        if (!box.colide(boxes))
+        {
+            image = new ReferenceSubImage(m_image, &box);
+            
+            ret.push_back(image);
+            imagesExtracted++;
+        }        
+    } while (imagesExtracted < imagesToExtract);
+    
+    return ret;
+}
+
 std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> boxes, int minHeight)
 {
     std::vector<Image*> ret;
@@ -81,7 +122,7 @@ std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> bo
         
         if (!box.m_occluded)
         {
-            if (box.isPerson() && box.m_height > minHeight)
+            if (box.isPerson() && box.m_height > minHeight && box.m_x >= 0 && box.m_y >= 0)
             {
                 ReferenceSubImage* img = new ReferenceSubImage(m_image, &box);
                 ret.push_back(img);
@@ -124,6 +165,8 @@ std::vector<Image*> ImageExtractor::resizePersons(std::vector<Image*> persons)
     return ret;
 }
 
+
+
 void ImageExtractor::saveHogFeatures(std::vector<HOGFeature*> persons)
 {
     for (int i=0; i < persons.size(); i++)
@@ -157,6 +200,12 @@ void ImageExtractor::saveHogPersons(std::vector<Image*> persons)
     }
 }
 
+
+
+/**
+ * Saves the extracted persons images as PNG files
+ * @param persons
+ */
 void ImageExtractor::savePersons(std::vector<Image*> persons)
 {
     for (int i=0; i < persons.size(); i++)
@@ -169,6 +218,9 @@ void ImageExtractor::savePersons(std::vector<Image*> persons)
         
     }
 }
+
+
+
 
 /**
  * @param filename

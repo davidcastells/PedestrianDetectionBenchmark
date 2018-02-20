@@ -50,7 +50,10 @@ public:
     void saveHogFeatures(std::vector<HOGFeature*> persons);
     void saveImageAsPng(const char* file, Image* image);
     void saveHogFeatureAsCsv(const char* filename, HOGFeature* feature);
+    BoundingBox createRandomBox(int w, int h, int boxx, int boxy);
+
     std::vector<Image*> getPersonsHigher(std::vector<BoundingBox> boxes, int minHeight);
+    std::vector<Image*> getNonPersons(std::vector<BoundingBox> boxes);
     std::vector<Image*> resizePersons(std::vector<Image*> persons);
     
 public:

@@ -42,6 +42,7 @@ private:
 
 public:
     void parseOptions(int argc, char* args[]);
+    void validateOptions();
     
     void run();
     void usage();
@@ -55,8 +56,12 @@ protected:
     bool m_doExtractAnnotatedPersons;
     bool m_doExtractHogPersons;
     bool m_doExtractHogFeatures;
+    bool m_doExtractHogSvm;
+    bool m_doTrainSvmFromFiles;
+    bool m_doPredict;
     bool m_doMaxFps;
     bool m_doYuv;
+    bool m_doMonochrome;
     bool m_doRotateHog;
     bool m_doResizePersons;
     int m_minPersonHeight;

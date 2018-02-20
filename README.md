@@ -19,7 +19,7 @@ Executables
 Libraries
 - libjpeg (for JPEG image decompressing, since Caltech images are compressed with jpeg)
 - libpng (for PNG image compression and decompression. INRIA dataset uses PNG, and we extract images as PNG)
-
+- libsvm (to work with Support Vector Machine models)
 
 Compile
 -------
@@ -36,14 +36,26 @@ Usage
 -----
 
 Do a
-./pedestriandetectionbenchmark --help to display all the current options
+<pre>./pedestriandetectionbenchmark --help </pre>
+to display all the current options
 
 For instance:
-./pedestriandetectionbenchmark --play-input-sequence --dataset USA  
+
+<pre>./pedestriandetectionbenchmark --play-input-sequence --dataset USA  </pre>
 Will play the original Caltech sequence (set01) 
 
-./pedestriandetectionbenchmark --play-input-as-hog --dataset USA  --rotate-hog
+<pre>./pedestriandetectionbenchmark --play-input-as-hog --dataset USA  --rotate-hog</pre>
 Will display a visualization of the HOG transform on the original Caltech sequence (set01) 
 
+
+<pre>./pedestriandetectionbenchmark --max-fps  --resize-persons-as 96 160  --min-person-height 100 --start-in-frame 1 --rotate-hog --extract-hog-svm</pre>
+Will generate a SVM file with the positive HOG features from annotated pedestrians higher than 100 pixels, and normalized to 96x100 pixels 
+and negative HOG features from random rectangular images from the source images.
+
+<pre>./pedestriandetectionbenchmark --train-svm-from-files</pre>
+Will create the SVM model from SVM files
+
+<pre>./pedestriandetectionbenchmark --predict --resize-persons-as 96 160</pre>
+Will create the SVM model from SVM files
 
 

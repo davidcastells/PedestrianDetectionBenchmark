@@ -75,9 +75,6 @@
       <compileType>
         <ccTool>
           <standard>11</standard>
-          <incDir>
-            <pElem>/usr/include/libsvm</pElem>
-          </incDir>
         </ccTool>
         <linkerTool>
           <linkerLibItems>
@@ -330,7 +327,7 @@
       </item>
       <item path="ReferenceSubImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SVMClassifier.cpp" ex="true" tool="1" flavor2="11">
+      <item path="SVMClassifier.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="SeqFileHeader.cpp" ex="false" tool="1" flavor2="11">
       </item>

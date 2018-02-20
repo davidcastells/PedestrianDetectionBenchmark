@@ -37,6 +37,7 @@ int main(int argc, char** argv)
     PedestrianDetectionBenchmark benchmark;
     
     benchmark.parseOptions(argc, argv);
+    benchmark.validateOptions();
     benchmark.run();
     
     return (EXIT_SUCCESS);

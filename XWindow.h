@@ -44,6 +44,7 @@ public:
 public:
     void create(int w, int h, int d, int zoom);
     void drawRGBImage(Image* image);
+    void drawBoundingBox(BoundingBox& box);
     void drawBoundingBoxes(std::vector<BoundingBox> boxes);
     void flush();
     

@@ -51,33 +51,39 @@ void XWindow::flush()
     XFlush(m_display);
 }
 
+void XWindow::drawBoundingBox(BoundingBox& box)
+{
+    //        printf("drawing box %d - %d %d %d %d\n", i, (int) box.m_x, (int)box.m_y, (int)box.m_width, (int)box.m_height);
+        
+    if (box.m_occluded)
+    {
+        XSetForeground(m_display, m_gc, m_greyColor.pixel); 
+    }
+    else
+    {
+//            printf("%s\n", box.m_objLabel.c_str());
+
+        if (box.isPerson())
+            XSetForeground(m_display, m_gc, m_redColor.pixel); 
+        else
+            XSetForeground(m_display, m_gc, m_yellowColor.pixel); 
+    }
+
+    XDrawRectangle(m_display, m_window, m_gc,
+            (int) box.m_x*m_zoom,
+            (int) box.m_y*m_zoom, 
+            (int)box.m_width*m_zoom,
+            (int)box.m_height*m_zoom);
+}
+
 void XWindow::drawBoundingBoxes(std::vector<BoundingBox> boxes)
 {
     for (int i=0; i < boxes.size(); i++)
     {
         BoundingBox box = boxes.at(i);
         
-//        printf("drawing box %d - %d %d %d %d\n", i, (int) box.m_x, (int)box.m_y, (int)box.m_width, (int)box.m_height);
-        
-        if (box.m_occluded)
-        {
-            XSetForeground(m_display, m_gc, m_greyColor.pixel); 
-        }
-        else
-        {
-//            printf("%s\n", box.m_objLabel.c_str());
-            
-            if (box.isPerson())
-                XSetForeground(m_display, m_gc, m_redColor.pixel); 
-            else
-                XSetForeground(m_display, m_gc, m_yellowColor.pixel); 
-        }
-        
-        XDrawRectangle(m_display, m_window, m_gc,
-                (int) box.m_x*m_zoom,
-                (int) box.m_y*m_zoom, 
-                (int)box.m_width*m_zoom,
-                (int)box.m_height*m_zoom);
+        drawBoundingBox(box);
+
     }
 }
 

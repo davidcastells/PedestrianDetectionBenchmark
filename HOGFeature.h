@@ -41,6 +41,7 @@ public:
     int getCellsInAxisY();
     int getBlocksInAxisX();
     int getBlocksInAxisY();
+    int getTotalBins();
     
 public:
     /** It contains 3 hog features (1 for each color channel) */

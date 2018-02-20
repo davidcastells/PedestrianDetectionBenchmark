@@ -100,6 +100,12 @@ int HOGFeature::getBlocksInAxisY()
 }
 
 
+int HOGFeature::getTotalBins()
+{
+    int totalBins = m_numBlocksX * m_numBlocksY * m_blockWidth * m_blockHeight * 9 * m_colorChannels;
+    
+    return totalBins;
+}
 
 /**
  * Return the starting x position to the first pixel of the cell x index

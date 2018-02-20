@@ -17,6 +17,7 @@
       <itemPath>PedestrianDetectionBenchmark.h</itemPath>
       <itemPath>PerformanceLap.h</itemPath>
       <itemPath>ReferenceSubImage.h</itemPath>
+      <itemPath>SVMClassifier.h</itemPath>
       <itemPath>SeqFileHeader.h</itemPath>
       <itemPath>SeqFileReader.h</itemPath>
       <itemPath>XWindow.h</itemPath>
@@ -41,6 +42,7 @@
       <itemPath>PedestrianDetectionBenchmark.cpp</itemPath>
       <itemPath>PerformanceLap.cpp</itemPath>
       <itemPath>ReferenceSubImage.cpp</itemPath>
+      <itemPath>SVMClassifier.cpp</itemPath>
       <itemPath>SeqFileHeader.cpp</itemPath>
       <itemPath>SeqFileReader.cpp</itemPath>
       <itemPath>XWindow.cpp</itemPath>
@@ -79,6 +81,7 @@
             <linkerOptionItem>-lX11</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lpng</linkerOptionItem>
+            <linkerOptionItem>-lsvm</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -89,6 +92,16 @@
       <item path="BufferedImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="C:/Projects/Research/INT_Autonomous Car/T02_HOGBenchmark/PedestrianDetectionBenchmark/SVMClassifier.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="C:/Projects/Research/INT_Autonomous Car/T02_HOGBenchmark/PedestrianDetectionBenchmark/SVMClassifier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -176,6 +189,10 @@
       <item path="BufferedImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SVMClassifier.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SVMClassifier.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>

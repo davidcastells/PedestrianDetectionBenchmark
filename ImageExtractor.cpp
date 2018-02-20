@@ -31,6 +31,7 @@
 #include "BoundingBox.h"
 
 #include <png.h>
+#include <stdlib.h>
 
 ImageExtractor::ImageExtractor()
 {

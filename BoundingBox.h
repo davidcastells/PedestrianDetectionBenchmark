@@ -28,6 +28,7 @@
 #define BOUNDINGBOX_H
 
 #include <string>
+#include <vector>
 
 class BoundingBox {
 public:
@@ -38,6 +39,8 @@ public:
 public:
     bool isPerson();
     void centerBox(int nw, int nh);
+    bool colide(std::vector<BoundingBox> boxes);
+    bool colide(BoundingBox& box);
     
 public:
     double m_x;

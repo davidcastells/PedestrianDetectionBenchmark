@@ -24,6 +24,8 @@
  * Created on February 8, 2018, 9:10 AM
  */
 
+#include <vector>
+
 #include "BoundingBox.h"
 
 BoundingBox::BoundingBox(double x, double y, double w, double h, bool occluded)
@@ -53,6 +55,54 @@ bool BoundingBox::isPerson()
 
 BoundingBox::~BoundingBox()
 {
+}
+
+/**
+ * Collision detection. Two boxes colide is their intersection is non empty set.
+ *  
+ * @param box
+ * @return 
+ */
+bool BoundingBox::colide(BoundingBox& box)
+{
+    int xa1 = m_x;
+    int xa2 = m_x + m_width;
+    
+    int xb1 = box.m_x;
+    int xb2 = box.m_x + box.m_width;
+    
+    if (xa1  >  xb2)    
+        // no collision possible (a is to the right of b)
+        return false;
+    
+    if (xa2 < xb1)
+        // no collision possible (a if to the left of b)
+        return false;
+    
+    int ya1 = m_y;
+    int ya2 = m_y + m_height;
+    
+    int yb1 = box.m_y;
+    int yb2 = box.m_y + box.m_height;
+    
+    if (ya1 > ya2)
+        // no collision possible (a is to below b)
+        return false;
+    
+    if (ya2 < yb1)
+        // no collision possible (a is on top of b)
+        return false;
+    
+    return true;
+}
+
+bool BoundingBox::colide(std::vector<BoundingBox> boxes)
+{
+    for (int i=0; i< boxes.size(); i++)
+        if (colide(boxes.at(i)))
+            return true;
+    
+    return false;
 }
 
 void BoundingBox::centerBox(int nw, int nh)

@@ -32,6 +32,8 @@
 
 #include <string>
 
+std::string format(const char *fmt, ...);
+
 /**
  * Seq File Reader
  * This class implements a simple Norpix Seq File Reader / Parser.

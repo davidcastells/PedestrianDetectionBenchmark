@@ -50,17 +50,15 @@ public:
     std::vector<HOGFeature*> createHogFeatures(std::vector<Image*> images);
 
 protected:
-    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel);
-    void computeHistogram(unsigned int* pBin);
+    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientX, short* gradientY);
+    void computeHistogram(short* gradientX, short* gradientY, unsigned int* pBin);
     void getCellX();
     void getCellY();
     
 public:
     bool m_rotateHog;
 private:
-    // gradients are short (not char) because we need 10 bits 
-    short m_gradientx[8*8];
-    short m_gradienty[8*8];
+    
 
     int m_cellWidth;
     int m_cellHeight;

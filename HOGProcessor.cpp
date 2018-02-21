@@ -113,6 +113,7 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
 {
     HOGFeature* feature = new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, 3);
     
+    #pragma omp parallel for
     for (int colorChannel = 0; colorChannel < 3; colorChannel++)
     {
         for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
@@ -120,7 +121,11 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
                     for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
                     {
-                        computeGradient(image, feature, xblock, yblock, xcell, ycell, colorChannel);
+                        // gradients are short (not char) because we need 10 bits 
+                        short gradientx[8*8];
+                        short gradienty[8*8];
+                        
+                        computeGradient(image, feature, xblock, yblock, xcell, ycell, colorChannel, gradientx, gradienty);
 
                         // clear the histogram bins for this cell
                         unsigned int* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
@@ -128,7 +133,7 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
                         for (int bin = 0; bin < 9; bin++)
                             pBin[bin] = 0;
 
-                        computeHistogram(pBin);
+                        computeHistogram(gradientx, gradienty, pBin);
                     }
     }
     
@@ -142,7 +147,7 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
  * @todo fix the border cases (they should contribute to the other extreme)
  * @param pBin
  */
-void HOGProcessor::computeHistogram(unsigned int* pBin)
+void HOGProcessor::computeHistogram(short* gradientx, short* gradienty, unsigned int* pBin)
 {
     double pi = 3.14159265359;
     double pi18 = pi / 18.0;
@@ -151,8 +156,8 @@ void HOGProcessor::computeHistogram(unsigned int* pBin)
     for (int y=0; y < 8; y++)
         for (int x=0; x < 8; x++)
         {
-            double mag = sqrt((m_gradientx[x+y*8] * m_gradientx[x+y*8]) + (m_gradienty[x+y*8] * m_gradienty[x+y*8]));
-            double orientation = atan2(m_gradienty[x+y*8], m_gradientx[x+y*8]);
+            double mag = sqrt((gradientx[x+y*8] * gradientx[x+y*8]) + (gradienty[x+y*8] * gradienty[x+y*8]));
+            double orientation = atan2(gradienty[x+y*8], gradientx[x+y*8]);
 
             if (mag == 0)
                     // avoid wasting time for mag = 0
@@ -218,7 +223,7 @@ void HOGProcessor::computeHistogram(unsigned int* pBin)
  * @param ycell
  * @param colorChannel
  */
-void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel)
+void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientx, short* gradienty)
 {
     // compute the gradients 
     // [-1, 0, 1] for horizontal and vertical gradients
@@ -233,8 +238,8 @@ void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock
             int fy_m1 = (y > 0)? (fy-1) : fy;
             int fy_p1 = (fy < (image->m_width-1))? (fy+1) : fy;
 
-            m_gradientx[x+y*8] = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
-            m_gradienty[x+y*8] = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);
+            gradientx[x+y*8] = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
+            gradienty[x+y*8] = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);
         }
     
 }

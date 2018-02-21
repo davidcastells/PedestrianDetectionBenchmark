@@ -46,16 +46,18 @@ ReferenceSubImage::ReferenceSubImage(Image* image, int x, int y, int w, int h)
 
 ReferenceSubImage::ReferenceSubImage(Image* image, BoundingBox* box)
 {
-    m_width = box->m_width;
-    m_stride = image->m_stride;
-    m_height = box->m_height;
-    m_buffer = &image->m_buffer[(int)(((box->m_y*image->m_stride)+box->m_x)*3)];
-    m_ownBuffer = false;
-    m_objId = box->m_objId;
-    
     m_reference = image;
     m_referenceX = box->m_x;
     m_referenceY = box->m_y;
+    
+    m_width = box->m_width;
+    m_stride = image->m_stride;
+    m_height = box->m_height;
+    m_buffer = &image->m_buffer[(int)(((m_referenceY*image->m_stride)+m_referenceX)*3)];
+    m_ownBuffer = false;
+    m_objId = box->m_objId;
+    
+    
 }
 
 //ReferenceSubImage::ReferenceSubImage(const ReferenceSubImage& orig)

@@ -47,6 +47,12 @@ public:
     double m_y;
     double m_width;
     double m_height;
+    
+    double m_vx;
+    double m_vy;
+    double m_vw;
+    double m_vh;
+    
     bool m_occluded;
     int m_objId;
     std::string m_objLabel;

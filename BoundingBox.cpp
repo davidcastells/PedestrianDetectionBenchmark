@@ -107,9 +107,9 @@ bool BoundingBox::colide(std::vector<BoundingBox> boxes)
 
 void BoundingBox::centerBox(int nw, int nh)
 {
-    double factor = (double) m_height / (double) nh;
+    double aspectRatio = (double) nw / (double) nh;
     
-    int expectedWidth = nw * factor;
+    int expectedWidth = m_height * aspectRatio;
     int expectedMiddle = expectedWidth / 2;
     int currentMiddle = m_width / 2;
     

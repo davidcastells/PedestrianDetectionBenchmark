@@ -233,6 +233,7 @@ void PedestrianDetectionBenchmark::run()
     {
         printf("[INFO] Reading SVM file\n");
         classifier.readProblem();
+        printf("[INFO] Training Model\n");
         classifier.trainModel();
         
         printf("[INFO] Writing SVM model\n");
@@ -324,12 +325,15 @@ void PedestrianDetectionBenchmark::run()
                         double ret = classifier.predict(feature);
                         delete feature;
                         
-                        if (ret == 1)
+                        if (ret > 0.7)
                         {
                             window.drawBoundingBox(box);
-                            printf("Found Person at %d %d %d %d\n", slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
+                            window.flush();
+                            printf("Score: %0.2f - Found Person at %d %d %d %d\n", ret, slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
                         }
                     }
+                
+                
             }
             
             if (m_doPlayInputSequence)
@@ -398,11 +402,14 @@ void PedestrianDetectionBenchmark::run()
                 {
                     std::vector<HOGFeature*> hogs = hogProcess.createHogFeatures(inputPersons);
                     classifier.savePersonHogSvms(hogs);
-                    hogs.clear();
                     
-                    std::vector<Image*> nonPersons = extractor.getNonPersons(centeredBoxes);
-                    hogs = hogProcess.createHogFeatures(nonPersons);
-                    classifier.saveNonPersonHogSvms(hogs);
+                    if (hogs.size() > 0)
+                    {
+                        hogs.clear();
+                        std::vector<Image*> nonPersons = extractor.getNonPersons(centeredBoxes);
+                        hogs = hogProcess.createHogFeatures(nonPersons);
+                        classifier.saveNonPersonHogSvms(hogs);
+                    }
                 }
             }
 
@@ -413,6 +420,11 @@ void PedestrianDetectionBenchmark::run()
              
                 nextDeadline = lap.dtime() + framePeriodSeconds;
             }
+        }
+        
+        if (m_doExtractHogSvm)
+        {
+            printf("[INFO] SVM Data: %d Positive Samples %d Negative Samples\n", classifier.m_positiveSample, classifier.m_negativeSample);
         }
     }
 }

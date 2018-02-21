@@ -165,10 +165,10 @@ std::vector<BoundingBox> MatfileReader::getBoundingBoxes(int frame)
 
 //        v2->dumpInfo();
         
-        int x = ((MatlabValue*)v2->get(0))->toInt();
-        int y = ((MatlabValue*)v2->get(1))->toInt();
-        int w = ((MatlabValue*)v2->get(2))->toInt();
-        int h = ((MatlabValue*)v2->get(3))->toInt();
+        double x = ((MatlabValue*)v2->get(0))->toDouble();
+        double y = ((MatlabValue*)v2->get(1))->toDouble();
+        double w = ((MatlabValue*)v2->get(2))->toDouble();
+        double h = ((MatlabValue*)v2->get(3))->toDouble();
         
         v2 = (MatlabMatrix*) frameInfo->get("occl", i);
         
@@ -180,6 +180,17 @@ std::vector<BoundingBox> MatfileReader::getBoundingBoxes(int frame)
 
 //        printf("Label: %s\n", name.c_str());
 //        printf("obj label: %s\n", rec.m_objLabel.c_str());
+        
+        v2 = (MatlabMatrix*) frameInfo->get("posv", i);
+//        v2 = (MatlabMatrix*) frameInfo->get("posv", i);
+
+//        v2->dumpInfo();
+        
+        rec.m_vx = ((MatlabValue*)v2->get(0))->toDouble();
+        rec.m_vy = ((MatlabValue*)v2->get(1))->toDouble();
+        rec.m_vw = ((MatlabValue*)v2->get(2))->toDouble();
+        rec.m_vh = ((MatlabValue*)v2->get(3))->toDouble();
+        
         
         ret.push_back(rec);
     }

@@ -30,7 +30,7 @@ If Netbeans project is correctly working, you can also compile from the commandl
 <pre>make</pre>
 
 Otherwise you can also compile with
-<pre>g++ -g -std=c++14 *.cpp -o pedestriandetectionbenchmark -ljpeg -lpng -lm -lX11 </pre>
+<pre>g++ -g -std=c++14 *.cpp -o pedestriandetectionbenchmark -ljpeg -lpng -lm -lX11 -lsvm </pre>
 
 Usage
 -----
@@ -56,6 +56,6 @@ and negative HOG features from random rectangular images from the source images.
 Will create the SVM model from SVM files
 
 <pre>./pedestriandetectionbenchmark --predict --resize-persons-as 96 160</pre>
-Will create the SVM model from SVM files
+Will use the SVM model to run the predictor while detecting pedestrians
 
 

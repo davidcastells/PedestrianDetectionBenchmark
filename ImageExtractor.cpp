@@ -31,6 +31,8 @@
 #include "BoundingBox.h"
 
 #include <png.h>
+#include <assert.h>
+#include <math.h>
 
 ImageExtractor::ImageExtractor()
 {
@@ -74,6 +76,8 @@ void ImageExtractor::extractFrame()
 
 BoundingBox ImageExtractor::createRandomBox(int w, int h, int boxx, int boxy)
 {
+    static unsigned lastSeed = 0;
+    
     BoundingBox b(0, 0, 0, 0, false);
     
     int maxx = w - boxx;
@@ -81,6 +85,15 @@ BoundingBox ImageExtractor::createRandomBox(int w, int h, int boxx, int boxy)
     
     b.m_width = boxx;
     b.m_height = boxy;
+    
+    unsigned seed = time(NULL);
+    
+    if (seed != lastSeed)
+    {
+        // 
+        srand (seed);
+        lastSeed = seed;
+    }
     
     b.m_x = rand() % maxx;
     b.m_y = rand() % maxy;
@@ -102,6 +115,7 @@ std::vector<Image*> ImageExtractor::getNonPersons(std::vector<BoundingBox> boxes
         
         if (!box.colide(boxes))
         {
+            box.m_objId = imagesExtracted;
             image = new ReferenceSubImage(m_image, &box);
             
             ret.push_back(image);
@@ -112,7 +126,7 @@ std::vector<Image*> ImageExtractor::getNonPersons(std::vector<BoundingBox> boxes
     return ret;
 }
 
-std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> boxes, int minHeight)
+std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> boxes, int minWidth, int minHeight)
 {
     std::vector<Image*> ret;
     
@@ -122,7 +136,7 @@ std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> bo
         
         if (!box.m_occluded)
         {
-            if (box.isPerson() && box.m_height > minHeight && box.m_x >= 0 && box.m_y >= 0)
+            if (box.isPerson() && box.m_width > minWidth && box.m_height > minHeight && box.m_x >= 0 && box.m_y >= 0)
             {
                 ReferenceSubImage* img = new ReferenceSubImage(m_image, &box);
                 ret.push_back(img);
@@ -137,6 +151,8 @@ std::vector<Image*> ImageExtractor::resizePersons(std::vector<Image*> persons)
 {
     std::vector<Image*> ret;
     
+    double targetAspectRatio = (double) m_resizeX / (double) m_resizeY;
+    
     for (int i=0; i < persons.size(); i++)
     {
         Image* image = persons.at(i);
@@ -145,13 +161,18 @@ std::vector<Image*> ImageExtractor::resizePersons(std::vector<Image*> persons)
         {
             BufferedImage* resized = new BufferedImage(m_resizeX, m_resizeY);
             
-            double factor = (double) image->m_height / (double) m_resizeY;
+            double srcAspectRatio = (double) image->m_width / (double) image->m_height;
+            
+            // ensure the aspect ratio of persons to resize is the same
+            assert(fabs(srcAspectRatio - targetAspectRatio) < 0.1);
+            
+            double zoomFactor = (double) image->m_height / (double) m_resizeY;
             
             int totalWidth = ((ReferenceSubImage*)image)->m_reference->m_width;
             int totalHeight = ((ReferenceSubImage*)image)->m_reference->m_height;
             
             // Ignore boundary images
-            if (((ReferenceSubImage*)image)->m_referenceX + (m_resizeX*factor) > totalWidth)
+            if (((ReferenceSubImage*)image)->m_referenceX + (m_resizeX*zoomFactor) > totalWidth)
                 continue;
             if (((ReferenceSubImage*)image)->m_referenceY + image->m_height > totalHeight)
                 continue;
@@ -200,7 +221,18 @@ void ImageExtractor::saveHogPersons(std::vector<Image*> persons)
     }
 }
 
-
+void ImageExtractor::saveSvmTraining(std::vector<Image*> images, bool positive)
+{
+    for (int i=0; i < images.size(); i++)
+    {
+        Image* image = images.at(i);
+        
+        std::string outFile = format("%s/frame%d_%s%d.png", m_extractionPath.c_str(), m_frameNumber, positive?"svm_pos":"svm_neg", image->m_objId);
+        printf("Saving %s..\n", outFile.c_str());
+        saveImageAsPng(outFile.c_str(), image);
+        
+    }
+}
 
 /**
  * Saves the extracted persons images as PNG files

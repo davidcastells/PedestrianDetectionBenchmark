@@ -67,6 +67,10 @@ private:
     
     std::string m_trainingInputFile;
     std::string m_modelFile;
+    
+public:
+    int m_positiveSample;
+    int m_negativeSample;
 };
 
 #endif /* SVMCLASSIFIER_H */

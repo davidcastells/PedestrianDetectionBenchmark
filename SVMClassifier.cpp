@@ -33,7 +33,7 @@
 
 SVMClassifier::SVMClassifier()
 {
-    param.svm_type = ONE_CLASS;
+    param.svm_type = C_SVC; // ONE_CLASS;
     param.kernel_type = LINEAR;
     param.degree = 1;
     param.gamma = 0;	// 1/num_features
@@ -44,10 +44,19 @@ SVMClassifier::SVMClassifier()
     param.eps = 1e-3;
     param.p = 0.1;
     param.shrinking = 1;
-    param.probability = 0;
+    param.probability = 1; // 0;
     param.nr_weight = 0;
     param.weight_label = NULL;
     param.weight = NULL;
+    
+    m_positiveSample = 0;
+    m_negativeSample = 0;
+    
+    model = NULL;
+    prob.y = NULL;
+    prob.x = NULL;
+    x_space = NULL;
+    line = NULL;
 }
 
 SVMClassifier::SVMClassifier(const SVMClassifier& orig)
@@ -57,13 +66,14 @@ SVMClassifier::SVMClassifier(const SVMClassifier& orig)
 
 SVMClassifier::~SVMClassifier()
 {
-    svm_free_and_destroy_model(&model);
+    if (model != NULL)
+        svm_free_and_destroy_model(&model);
     
     //svm_destroy_param(&param);
-    free(prob.y);
-    free(prob.x);
-    free(x_space);
-    free(line);
+    if (prob.y) free(prob.y);
+    if (prob.x) free(prob.x);
+    if (x_space) free(x_space);
+    if (line) free(line);
 }
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
@@ -104,11 +114,14 @@ void SVMClassifier::exportModel()
 double SVMClassifier::predict(HOGFeature* feature)
 {
     double ret;
+    double p[3] = {-1, -1};     // person , non-person
     struct svm_node *x = createSvmNodeFromHogFeature(feature);
     
-    ret = svm_predict(model, x);
+    //ret = svm_predict(model, x);
+    ret = svm_predict_probability(model, x, p);
     
-    free(x);
+    //free(x);
+    return p[0];
 }
 
 
@@ -296,6 +309,11 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
     FILE* fp = fopen(filename, "a+");
     
     fprintf(fp, (isPerson)? "1 " : "0 ");  // This is the label (1) means positive sample(person) , (0) means negative (non-person)
+    
+    if (isPerson)
+        m_positiveSample++;
+    else
+        m_negativeSample++;
     
     int featureNum = 1;
     

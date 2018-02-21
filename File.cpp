@@ -27,8 +27,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
+#include <sys/stat.h>
+#include <dirent.h>
 
 
 File::File(const char* path)
@@ -43,6 +44,7 @@ File::File(std::string& path)
 
 File::File(const File& orig)
 {
+    m_path = orig.m_path;
 }
 
 File::~File()
@@ -88,4 +90,30 @@ File* File::getParentFile()
     std::string parent = m_path.substr(0, pos);
     
     return new File(parent.c_str());
+}
+
+std::string File::getPath()
+{
+    return m_path;
+}
+
+std::vector<File> File::listFiles()
+{
+    std::vector<File> dirList;
+    
+    DIR *dir = opendir(m_path.c_str());
+    
+    if (dir == NULL)
+        return dirList;
+
+    struct dirent *ent;
+
+    // iterate all the files and directories within directory 
+    while ((ent = readdir (dir)) != NULL) 
+    {
+        dirList.push_back(File(ent->d_name));
+    }
+    closedir (dir);
+
+    return dirList;
 }

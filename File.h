@@ -28,6 +28,7 @@
 #define FILE_H
 
 #include <string>
+#include <vector>
 
 class File {
 public:
@@ -40,6 +41,9 @@ public:
     File* getParentFile();
     bool exists();
     void mkdirs();
+    std::vector<File> listFiles();
+    
+    std::string getPath();
     
 private:
     std::string m_path;

@@ -39,6 +39,7 @@ SeqFileReader::SeqFileReader(const char* file)
 {
     m_path = file;
     m_fp = NULL;
+    m_verbose = 0;
 }
 
 
@@ -354,7 +355,8 @@ void SeqFileReader::readHeader(SeqFileHeader* header)
     header->referenceTimeMS = readUSHORT();
     header->referenceTimeUS = readUSHORT();
     
-    printf("%s", header->toString().c_str());
+    if (m_verbose)
+        printf("%s", header->toString().c_str());
  
     if (header->compressionFormat != 0)
     {
@@ -365,10 +367,13 @@ void SeqFileReader::readHeader(SeqFileHeader* header)
     
     int afterHeader = ftell(m_fp);
     
-    printf("Header Size: 0x%08X\n", afterHeader);
+    if (m_verbose)
+        printf("Header Size: 0x%08X\n", afterHeader);
     //exit(0);
     
     fseek(m_fp, header->headerSize, SEEK_SET);
     afterHeader = ftell(m_fp);
-    printf("Image Offset: 0x%08X\n", afterHeader);
+    
+    if (m_verbose)
+        printf("Image Offset: 0x%08X\n", afterHeader);
 }

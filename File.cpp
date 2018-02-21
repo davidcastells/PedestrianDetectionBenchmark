@@ -37,6 +37,11 @@ File::File(const char* path)
     m_path = path;
 }
 
+File::File(File* parent, const char* path)
+{
+    m_path = parent->m_path + std::string("/") + std::string(path);
+}
+
 File::File(std::string& path)
 {
     m_path = path;
@@ -111,7 +116,7 @@ std::vector<File> File::listFiles()
     // iterate all the files and directories within directory 
     while ((ent = readdir (dir)) != NULL) 
     {
-        dirList.push_back(File(ent->d_name));
+        dirList.push_back(File(this, ent->d_name));
     }
     closedir (dir);
 

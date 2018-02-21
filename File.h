@@ -33,6 +33,7 @@
 class File {
 public:
     File(const char* path);
+    File(File* parent, const char* path);
     File(std::string& path);
     File(const File& orig);
     virtual ~File();

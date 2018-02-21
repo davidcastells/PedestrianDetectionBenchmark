@@ -50,9 +50,10 @@ public:
     void savePersonHogSvms(std::vector<HOGFeature*> persons);
     void saveNonPersonHogSvms(std::vector<HOGFeature*> nonPersons);
     double predict(HOGFeature* feature);
+    void appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature);
     
 private:
-    void appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature);
+    
     char* readLine(FILE *input);
     svm_node* createSvmNodeFromHogFeature(HOGFeature* feature);
 
@@ -67,6 +68,10 @@ private:
     
     std::string m_trainingInputFile;
     std::string m_modelFile;
+    
+public:
+    int m_positiveSample;
+    int m_negativeSample;
 };
 
 #endif /* SVMCLASSIFIER_H */

@@ -32,6 +32,13 @@
 #ifndef PEDESTRIANDETECTIONBENCHMARK_H
 #define PEDESTRIANDETECTIONBENCHMARK_H
 
+#include "Downloader.h"
+#include "HOGProcessor.h"
+#include "ImageExtractor.h"
+#include "SVMClassifier.h"
+#include "XWindow.h"
+#include "Image.h"
+
 #include <string>
 
 class PedestrianDetectionBenchmark {
@@ -42,11 +49,15 @@ private:
 
 public:
     void parseOptions(int argc, char* args[]);
+    
     void validateOptions();
     
     void run();
     void usage();
     int getAnnotatedFrames();
+    
+    void slidingWindowPrediction(Image* image, std::vector<BoundingBox>& annotatedBoxes);
+    void generateSvmInputFromExtractedImages();
     
 protected:
     bool m_doUsage;
@@ -60,7 +71,9 @@ protected:
     bool m_doExtractImagesSvm;
     bool m_doTrainSvmFromFiles;
     bool m_doExtractSvmFromImages;
+    bool m_doExtractMispredictedSvm;
     bool m_doPredict;
+    bool m_doPredictExtractedImages;
     bool m_doMaxFps;
     bool m_doYuv;
     bool m_doMonochrome;
@@ -78,6 +91,14 @@ protected:
     int m_doResizePersonsY;
     double m_fps;
     std::string m_dataset;
+    
+    
+private:
+    Downloader downloader;
+    HOGProcessor hogProcess;
+    ImageExtractor extractor;
+    SVMClassifier classifier;
+    XWindow window;
 };
 
 #endif /* PEDESTRIANDETECTIONBENCHMARK_H */

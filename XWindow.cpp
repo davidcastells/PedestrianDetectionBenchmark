@@ -166,7 +166,7 @@ void XWindow::create(int width, int height, int bitDepth, int zoom)
     
     
     printf("GC created\n");
-    printf("background=%d foreground=%d\n", background, foreground);
+    printf("background=%d foreground=%d\n", (int) background, (int) foreground);
 
     XMapWindow(m_display, m_window);
     

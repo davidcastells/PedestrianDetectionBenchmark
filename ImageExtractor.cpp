@@ -33,6 +33,7 @@
 #include <png.h>
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 
 ImageExtractor::ImageExtractor()
 {
@@ -221,15 +222,43 @@ void ImageExtractor::saveHogPersons(std::vector<Image*> persons)
     }
 }
 
+/**
+ * Save an Normalized Image as a sample for future SVM training.
+ * Images are labeled as positive or negative samples.
+ * @param image
+ * @param positive
+ */
+void ImageExtractor::saveSvmTraining(Image* image, bool positive)
+{
+    int num = image->m_objId;
+    bool loop;
+    std::string outFile;
+    
+    do
+    {
+        outFile = format("%s/frame%d_%s%d.png", m_extractionPath.c_str(), m_frameNumber, positive?"svm_pos":"svm_neg", num);
+        File file(outFile);
+        
+        if (file.exists())
+        {
+            num++;
+            loop = true;
+        }
+        else 
+            loop = false;
+    } while (loop);
+    
+    printf("Saving %s..\n", outFile.c_str());
+    saveImageAsPng(outFile.c_str(), image);
+}
+
 void ImageExtractor::saveSvmTraining(std::vector<Image*> images, bool positive)
 {
     for (int i=0; i < images.size(); i++)
     {
         Image* image = images.at(i);
         
-        std::string outFile = format("%s/frame%d_%s%d.png", m_extractionPath.c_str(), m_frameNumber, positive?"svm_pos":"svm_neg", image->m_objId);
-        printf("Saving %s..\n", outFile.c_str());
-        saveImageAsPng(outFile.c_str(), image);
+        saveSvmTraining(image, positive);
         
     }
 }

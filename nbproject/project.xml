@@ -14,11 +14,19 @@
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>Debug</name>
+                    <name>Cygwin-Debug</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Release</name>
+                    <name>Cygwin-Release</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Ubuntu-Debug</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Ubuntu-Release</name>
                     <type>1</type>
                 </confElem>
             </confList>

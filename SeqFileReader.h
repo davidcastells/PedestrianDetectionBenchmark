@@ -74,6 +74,7 @@ public:
 private:
     FILE*       m_fp;
     std::string m_path;
+    int     m_verbose;
 };
 
 #endif /* SEQFILEREADER_H */

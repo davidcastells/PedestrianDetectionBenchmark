@@ -68,16 +68,22 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doExtractFrames = false;
     m_doExtractAnnotatedPersons = false;
     m_doExtractHogPersons = false;
+    m_doExtractImagesSvm = false;
     m_doExtractHogSvm = false;
+    m_doExtractSvmFromImages = false;
     m_doTrainSvmFromFiles = false;
     m_doPredict = false;
     m_doMaxFps = false;
+    m_doDrawCenteredBoxes = false;
+    
+    m_dumpAnnotationInfo = false;
     
     m_doYuv = false;
     m_doMonochrome = false;
     m_doRotateHog = false;
     m_doResizePersons = false;
     m_minPersonHeight = 50;
+    m_minPersonWidth = 10;
     m_zoom = 1;
     m_startInFrame = 0;
     m_dataset = "USA";
@@ -93,6 +99,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_doPlayInputSequence = true;
         else if (strcmp(args[i], "--play-input-as-hog") == 0)
             m_doPlayInputAsHog = true;
+        else if (strcmp(args[i], "--draw-centered-boxes") == 0)
+            m_doDrawCenteredBoxes = true;
         else if (strcmp(args[i], "--extract-frames") == 0)
             m_doExtractFrames = true;
         else if (strcmp(args[i], "--extract-annotated-persons") == 0)
@@ -101,8 +109,12 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_doExtractHogPersons = true;
         else if (strcmp(args[i], "--extract-hog-features") == 0)
             m_doExtractHogFeatures = true;
+        else if (strcmp(args[i], "--extract-images-svm") == 0)
+            m_doExtractImagesSvm = true;
         else if (strcmp(args[i], "--extract-hog-svm") == 0)
             m_doExtractHogSvm = true;
+        else if (strcmp(args[i], "--create-svm-from-extracted-images") == 0)
+            m_doExtractSvmFromImages = true;
         else if (strcmp(args[i], "--train-svm-from-files") == 0)
             m_doTrainSvmFromFiles = true;
         else if (strcmp(args[i], "--predict") == 0)
@@ -132,6 +144,11 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_minPersonHeight = atoi(args[++i]);
             printf("Min Person Height=%d\n", m_minPersonHeight);
         }
+        else if (strcmp(args[i], "--min-person-width") == 0)
+        {
+            m_minPersonWidth = atoi(args[++i]);
+            printf("Min Person Width=%d\n", m_minPersonWidth);
+        }
         else if (strcmp(args[i], "--start-in-frame") == 0)
         {
             m_startInFrame = atoi(args[++i]);
@@ -146,6 +163,10 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
         {
             m_fps = atof(args[++i]);
             printf("FPS: %lf\n", m_fps);
+        }
+        else if (strcmp(args[i], "--dump-annotation-info") == 0)
+        {
+            m_dumpAnnotationInfo = true;
         }
         else
         {
@@ -162,6 +183,11 @@ void PedestrianDetectionBenchmark::validateOptions()
         printf("[ERROR] Cannot predict and generate SVM model at the same time\n");
         exit(-1);
     }
+    if ((m_doExtractHogSvm | m_doExtractImagesSvm) && !m_doResizePersons)
+    {
+        printf("[ERROR] Person dimensions must be known for SVM extractions. Use --resize-persons-as\n");
+        exit(-1);
+    }
     if (m_doPredict && !m_doResizePersons)
     {
         printf("[ERROR] Person dimensions must be known for prediction. Use --resize-persons-as\n");
@@ -170,6 +196,11 @@ void PedestrianDetectionBenchmark::validateOptions()
     if (m_doPlayInputAsHog && m_doPlayInputSequence)
     {
         printf("[ERROR] Cannot display HOG and original input at the same time\n");
+        exit(-1);
+    }
+    if (m_doExtractSvmFromImages && m_doExtractHogSvm)
+    {
+        printf("[ERROR] SVM can only be generated from one of the possible methods\n");
         exit(-1);
     }
 }
@@ -245,19 +276,32 @@ void PedestrianDetectionBenchmark::run()
         classifier.importModel();
     }
     
-    if (m_doExtractHogSvm)
+    if (m_doExtractHogSvm | m_doExtractSvmFromImages)
     {
-        if (m_doResizePersons == false)
-        {
-            printf("[ERROR] SVM classification requires person dimensions to be normalized. Use --resize-persons\n");
-            exit(-1);
-        }
         classifier.createSvmFile();
     }
     
     //annotationReader.getBoundingBoxes(0);
+    if (m_doExtractSvmFromImages)
+    {
+        File dir(extractor.m_extractionPath);
+        
+        std::vector<File> files = dir.listFiles();
+        
+        for (int i=0; i < files.size(); i++)
+        {
+            //std::string 
+            printf("File %d = %s\n", i, files.at(i).getPath().c_str());
+            
+            
+        }
+        // list positive svm files
+        // list negative svm files
+        // for each file, load it , convert it to HOG
+        // include it in SVM file
+    }
     
-    bool loopFrames = m_doPlayInputSequence | m_doPlayInputAsHog | m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractHogSvm | m_doPredict;
+    bool loopFrames = m_doPlayInputSequence | m_doPlayInputAsHog | m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractImagesSvm | m_doExtractHogSvm | m_doPredict;
     
     if (loopFrames)
     {
@@ -299,10 +343,46 @@ void PedestrianDetectionBenchmark::run()
             std::vector<BoundingBox> annotatedBoxes = annotationReader.getBoundingBoxes(i);
             std::vector<BoundingBox> centeredBoxes = annotatedBoxes;
             
+            if (m_dumpAnnotationInfo)
+            {
+                for (int b=0; b < annotatedBoxes.size(); b++)
+                {
+                    BoundingBox box = annotatedBoxes.at(b);
+                    
+                    printf("Box:  pos (%d,%d)  dim (%d,%d) Id %d Occluded %d V: pos (%f,%f)  dim (%f,%f)\n", 
+                            (int) box.m_x, (int)box.m_y, (int) box.m_width, (int) box.m_height,
+                            box.m_objId, box.m_occluded,
+                            box.m_vx, box.m_vy, box.m_vw, box.m_vh);
+                }
+            }
+            
             if (m_doResizePersons)
             {
                 for (int b=0; b < centeredBoxes.size(); b++)
-                    centeredBoxes.at(b).centerBox(m_doResizePersonsX, m_doResizePersonsY);
+                {
+                    BoundingBox box = centeredBoxes.at(b);
+                    
+                    if (box.m_width >= m_minPersonWidth)
+                    {
+                        // Avoid centering (expanding the width) of persons lower than 
+                        // the threshold so that they can be later filtered out
+                        box.centerBox(m_doResizePersonsX, m_doResizePersonsY);
+                        centeredBoxes.at(b) = box;
+                    }
+                }
+                
+                if (m_dumpAnnotationInfo)
+                {
+                    for (int b=0; b < centeredBoxes.size(); b++)
+                    {
+                        BoundingBox box = centeredBoxes.at(b);
+
+                        printf("Centered Box:  pos (%d,%d)  dim (%d,%d) Id %d Occluded %d V: pos (%f,%f)  dim (%f,%f)\n", 
+                                (int) box.m_x, (int)box.m_y, (int) box.m_width, (int) box.m_height,
+                                box.m_objId, box.m_occluded,
+                                box.m_vx, box.m_vy, box.m_vw, box.m_vh);
+                    }
+                }
             }
             
             if (m_doPredict | m_doPlayInputSequence)
@@ -334,7 +414,10 @@ void PedestrianDetectionBenchmark::run()
             
             if (m_doPlayInputSequence)
             {
-                window.drawBoundingBoxes(annotatedBoxes);
+                if (m_doDrawCenteredBoxes)
+                    window.drawBoundingBoxes(centeredBoxes);
+                else
+                    window.drawBoundingBoxes(annotatedBoxes);
             }
             
             if (m_doPredict | m_doPlayInputSequence)
@@ -365,18 +448,18 @@ void PedestrianDetectionBenchmark::run()
                 extractor.extractFrame();
             }
             
-            if (m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractHogFeatures | m_doExtractHogSvm)
+            if (m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractHogFeatures | m_doExtractImagesSvm | m_doExtractHogSvm)
             {
                 std::vector<Image*> inputPersons;
                 
                 if (m_doResizePersons)
                 {
-                    std::vector<Image*> persons = extractor.getPersonsHigher(centeredBoxes, m_minPersonHeight);
+                    std::vector<Image*> persons = extractor.getPersonsHigher(centeredBoxes, m_minPersonWidth, m_minPersonHeight);
                     inputPersons = extractor.resizePersons(persons);
                 }
                 else
                 {
-                    inputPersons = extractor.getPersonsHigher(centeredBoxes, m_minPersonHeight);
+                    inputPersons = extractor.getPersonsHigher(centeredBoxes, m_minPersonWidth, m_minPersonHeight);
                 }
                 
                 
@@ -394,15 +477,27 @@ void PedestrianDetectionBenchmark::run()
                     std::vector<Image*> hogs = hogProcess.createHogImages(inputPersons);
                     extractor.saveHogPersons(hogs);                        
                 }
-                if (m_doExtractHogSvm)
+                if (m_doExtractHogSvm | m_doExtractImagesSvm)
                 {
-                    std::vector<HOGFeature*> hogs = hogProcess.createHogFeatures(inputPersons);
-                    classifier.savePersonHogSvms(hogs);
-                    hogs.clear();
-                    
-                    std::vector<Image*> nonPersons = extractor.getNonPersons(centeredBoxes);
-                    hogs = hogProcess.createHogFeatures(nonPersons);
-                    classifier.saveNonPersonHogSvms(hogs);
+                    if (inputPersons.size() > 0)
+                    {
+                        std::vector<Image*> nonPersons = extractor.getNonPersons(centeredBoxes);
+
+                        if (m_doExtractImagesSvm)
+                        {
+                            extractor.saveSvmTraining(inputPersons, true);
+                            extractor.saveSvmTraining(nonPersons, false);
+                        }
+                        if (m_doExtractHogSvm)
+                        {                        
+                            std::vector<HOGFeature*> hogs = hogProcess.createHogFeatures(inputPersons);
+                            classifier.savePersonHogSvms(hogs);
+                            hogs.clear();
+
+                            hogs = hogProcess.createHogFeatures(nonPersons);
+                            classifier.saveNonPersonHogSvms(hogs);
+                        }
+                    }
                 }
             }
 
@@ -430,18 +525,24 @@ void PedestrianDetectionBenchmark::usage()
     printf("--play-input-sequence\n");
     printf("\tDisplay the input images\n");
     printf("\n");
+    printf("--draw-centered-boxes\n");
+    printf("\tDraws the bounding boxes centered w.r.t. the normalized bounding box\n");
+    printf("\n");
     printf("--play-input-as-hog\n");
     printf("\tDisplay the input images as HOG features\n");
     printf("\n");
     printf("--rotate-hog\n");
     printf("\tRotates the visualization of the HOG features by 90º for \n");
-    printf("\tmore intuitive interpretation of the scene ");
+    printf("\tmore intuitive interpretation of the scene \n");
     printf("\n");
     printf("--extract-frames\n");
     printf("\tExtract individual frames\n");
     printf("\n");
     printf("--min-person-height <n>\n");
     printf("\tMinimum height of the considered persons\n");
+    printf("\n");
+    printf("--min-person-width <n>\n");
+    printf("\tMinimum width of the considered persons\n");
     printf("\n");
     printf("--extract-annotated-persons\n");
     printf("\tExtract the pictures from the good (non occluded) persons\n");
@@ -452,10 +553,19 @@ void PedestrianDetectionBenchmark::usage()
     printf("--extract-hog-features\n");
     printf("\tExtract the HOG features from the good (non occluded) persons as CSV\n");
     printf("\n");
+    printf("--extract-images-svm\n");
+    printf("\tExtract the HOG images from the good (non occluded) persons to be used\n");
+    printf("\tas positive input and random crops (without persons) to be used as negative\n");
+    printf("\tinput by the training step\n");
+    printf("\n");
     printf("--extract-hog-svm\n");
     printf("\tExtract the HOG features from the good (non occluded) persons to be used\n");
     printf("\tas positive input and random crops (without persons) to be used as negative\n");
     printf("\tinput by the training step (also compatible with svm-train from LIBSVM)\n");
+    printf("\n");
+    printf("--create-svm-from-extracted-images\n");
+    printf("\tCreate the SVM features from the individual images extracted with the\n");
+    printf("\t--extract-images-svm flag.\n");
     printf("\n");
     printf("--predict\n");
     printf("\tRun pedestrian detection by using the SVM model\n");
@@ -481,10 +591,17 @@ void PedestrianDetectionBenchmark::usage()
     printf("\tResize persons to x * y resolution. Used in conjuntion with \n");
     printf("\t--extract-annotated-persons \n");
     printf("--yuv\n");
+    printf("\n");
     printf("\tConvert the RGB to YUV\n");
+    printf("\n");
     printf("--mono\n");
     printf("\tConvert the RGB to grey scale\n");
     printf("\n");
+    printf("--dump-annotation-info\n");
+    printf("\tDump information about the annotation\n");
+    printf("\n");
+    
+    
     
 }
 

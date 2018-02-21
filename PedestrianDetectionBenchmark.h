@@ -57,14 +57,21 @@ protected:
     bool m_doExtractHogPersons;
     bool m_doExtractHogFeatures;
     bool m_doExtractHogSvm;
+    bool m_doExtractImagesSvm;
     bool m_doTrainSvmFromFiles;
+    bool m_doExtractSvmFromImages;
     bool m_doPredict;
     bool m_doMaxFps;
     bool m_doYuv;
     bool m_doMonochrome;
     bool m_doRotateHog;
     bool m_doResizePersons;
+    bool m_doDrawCenteredBoxes;
+    
+    bool m_dumpAnnotationInfo;
+    
     int m_minPersonHeight;
+    int m_minPersonWidth;
     int m_zoom;
     int m_startInFrame;
     int m_doResizePersonsX;

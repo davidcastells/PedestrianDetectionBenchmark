@@ -262,6 +262,7 @@
           <incDir>
             <pElem>/usr/include/libsvm</pElem>
           </incDir>
+          <commandLine>-fopenmp</commandLine>
         </ccTool>
         <linkerTool>
           <linkerAddLib>

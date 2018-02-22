@@ -39,7 +39,7 @@ Image::~Image()
     if (m_ownBuffer)
     {
         if (m_buffer != NULL)
-            delete m_buffer;
+            delete [] m_buffer;
     }
 }
 

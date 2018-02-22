@@ -166,6 +166,6 @@ unsigned int* HOGFeature::getBin(int blockx, int blocky, int cellx, int celly, i
 
 HOGFeature::~HOGFeature()
 {
-    delete m_buffer;
+    delete [] m_buffer;
 }
 

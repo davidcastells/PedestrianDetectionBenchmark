@@ -89,6 +89,9 @@ void XWindow::drawBoundingBoxes(std::vector<BoundingBox> boxes)
 
 void XWindow::drawRGBImage(Image* image )
 {
+    if (m_display == 0)
+        return;
+    
     XImage* bitmap;
     int width = image->m_width * m_zoom;
     int height = image->m_height * m_zoom;
@@ -124,8 +127,8 @@ void XWindow::create(int width, int height, int bitDepth, int zoom)
         
     if (m_display==0)
     {
-        printf("[ERROR] cannot open DISPLAY\n");
-        exit(-1);
+        printf("[WARNING] cannot open DISPLAY\n");
+        return;
     }
     
     int screen = DefaultScreen(m_display);

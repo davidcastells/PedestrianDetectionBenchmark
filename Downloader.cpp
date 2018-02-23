@@ -91,15 +91,16 @@ void Downloader::remove(const char* file)
 
 bool endsWithCaseInsensitive(const std::string& value, const std::string& ending) 
 {
-    if (ending.size() > value.size()) {
-        return false;
+    
+    for (int i=ending.size(), j=value.size(); i >= 0; i--, j--)
+    {
+        if (tolower(ending[i]) != tolower(value[j]))
+            return false;
     }
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin(),
-        [](const char a, const char b) {
-            return tolower(a) == tolower(b);
-        }
-    );
+    
+    return true;
 }
+
 void Downloader::decompress(const char* file)
 {
     std::string cmd;

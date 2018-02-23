@@ -57,6 +57,9 @@ SVMClassifier::SVMClassifier()
     prob.x = NULL;
     x_space = NULL;
     line = NULL;
+    
+    predict_x = NULL;
+    predict_x_size = 0;
 }
 
 SVMClassifier::SVMClassifier(const SVMClassifier& orig)
@@ -74,6 +77,7 @@ SVMClassifier::~SVMClassifier()
     if (prob.x) free(prob.x);
     if (x_space) free(x_space);
     if (line) free(line);
+    if (predict_x) delete predict_x;
 }
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
@@ -115,19 +119,36 @@ double SVMClassifier::predict(HOGFeature* feature)
 {
     double ret;
     double p[3] = {-1, -1};     // person , non-person
-    struct svm_node *x = createSvmNodeFromHogFeature(feature);
+    //struct svm_node *x = createSvmNodeFromHogFeature(feature);
+    
+    if (predict_x == NULL)
+    {
+        predict_x_size = feature->getTotalBins()+1;
+        predict_x = new svm_node[predict_x_size];
+    }
+    else if (predict_x_size < (feature->getTotalBins()+1))
+    {
+        delete [] predict_x;
+        predict_x_size = feature->getTotalBins()+1;
+        predict_x = new svm_node[predict_x_size];
+    }
+    
+    int sx = sizeof(svm_node) * predict_x_size;
+    
+    //memset(x, 0, sx);
+    createSvmNodeFromHogFeature(feature, predict_x);
     
     //ret = svm_predict(model, x);
-    ret = svm_predict_probability(model, x, p);
+    ret = svm_predict_probability(model, predict_x, p);
     
     //free(x);
     return p[0];
 }
 
 
-svm_node* SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature)
+void SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* svmVector)
 {
-    struct svm_node* svmVector = (struct svm_node *) malloc(feature->getTotalBins() * sizeof(struct svm_node));
+    //struct svm_node* svmVector = (struct svm_node *) malloc(feature->getTotalBins() * sizeof(struct svm_node));
     
     int featureNum = 1;
 
@@ -150,7 +171,8 @@ svm_node* SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature)
                         }
                     }
     
-    return svmVector;
+    svmVector[featureNum].index = -1;
+//    return svmVector;
 }
 
 /**

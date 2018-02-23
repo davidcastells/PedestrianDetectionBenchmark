@@ -95,16 +95,6 @@
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ImageIO.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="ImageIO.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Downloader.h" ex="false" tool="3" flavor2="0">
@@ -128,6 +118,10 @@
       <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ImageIO.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ImageIO.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Matfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -194,16 +188,6 @@
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ImageIO.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="ImageIO.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Downloader.h" ex="false" tool="3" flavor2="0">
@@ -227,6 +211,10 @@
       <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ImageIO.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ImageIO.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Matfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -306,16 +294,6 @@
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ImageIO.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="ImageIO.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="Downloader.h" ex="false" tool="3" flavor2="0">
@@ -339,6 +317,10 @@
       <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ImageIO.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ImageIO.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Matfile.cpp" ex="false" tool="1" flavor2="11">
       </item>
@@ -386,9 +368,15 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <standard>10</standard>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>11</standard>
+          <incDir>
+            <pElem>/usr/include/libsvm</pElem>
+          </incDir>
+          <commandLine>-fopenmp</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -396,6 +384,15 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>-lX11</linkerOptionItem>
+            <linkerOptionItem>-lpng</linkerOptionItem>
+            <linkerOptionItem>-ljpeg</linkerOptionItem>
+            <linkerOptionItem>-lsvm</linkerOptionItem>
+          </linkerLibItems>
+          <commandLine>-O3</commandLine>
+        </linkerTool>
       </compileType>
       <item path="BoundingBox.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -404,16 +401,6 @@
       <item path="BufferedImage.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="BufferedImage.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="ImageIO.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="ImageIO.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="Downloader.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -438,6 +425,10 @@
       <item path="ImageExtractor.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="ImageExtractor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ImageIO.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ImageIO.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Matfile.cpp" ex="false" tool="1" flavor2="9">
       </item>

@@ -73,12 +73,13 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doExtractHogSvm = false;
     m_doExtractSvmFromImages = false;
     m_doExtractMispredictedSvm = false;
+    m_doStopAfterMisprediction = false;
     m_doTrainSvmFromFiles = false;
     m_doPredict = false;
     m_doPredictExtractedImages = false;
     m_doMaxFps = false;
     m_doDrawCenteredBoxes = false;
-    
+    m_doAutomatedTraining = false;
     m_dumpAnnotationInfo = false;
     
     m_doYuv = false;
@@ -93,6 +94,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doResizePersonsX = 64;
     m_doResizePersonsY = 128;
     m_fps = -1;
+    
+    m_invocationPath = args[0];
     
     for (int i=1; i < argc; i++)
     {
@@ -118,6 +121,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_doExtractHogSvm = true;
         else if (strcmp(args[i], "--extract-mispredicted-svm") == 0)
             m_doExtractMispredictedSvm = true;
+        else if (strcmp(args[i], "--stop-after-misprediction") == 0)
+            m_doStopAfterMisprediction = true;
         else if (strcmp(args[i], "--create-svm-from-extracted-images") == 0)
             m_doExtractSvmFromImages = true;
         else if (strcmp(args[i], "--train-svm-from-files") == 0)
@@ -126,6 +131,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
             m_doPredict = true;
         else if (strcmp(args[i], "--predict-extracted-images") == 0)
             m_doPredictExtractedImages = true;
+        else if (strcmp(args[i], "--automated-training") == 0)
+            m_doAutomatedTraining = true;
         else if (strcmp(args[i], "--resize-persons-as") == 0)
         {
             m_doResizePersons = true;
@@ -264,12 +271,66 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* image, std::ve
                 
                 if (m_doExtractMispredictedSvm)
                     if (!box.colide(annotatedBoxes))
+                    {
                         // the box is identified as person, but does not colide with any annotation,
                         // add it as a negative sample
                         extractor.saveSvmTraining(&subImage, false);
+                        if (m_doStopAfterMisprediction)
+                            exit(0);
+                    }
             }
         }
 
+}
+
+void PedestrianDetectionBenchmark::automatedTraining()
+{
+    int n = annotationReader.getAnnotatedFrames();
+    
+    std::string commonParam = "";
+    
+    if (m_doResizePersons)
+    {
+        commonParam.append(format(" --resize-persons-as %d %d", m_doResizePersonsX, m_doResizePersonsY));
+    }
+    
+    commonParam.append(format(" --min-person-height %d", m_minPersonHeight));
+    
+    std::string exe = std::string(m_invocationPath);
+    
+    std::string cmd = exe + commonParam + " --extract-images-svm";
+    printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+    system(cmd.c_str());
+    
+    for (int i=0; i < n; i++)
+    {
+        std::string param = " --create-svm-from-extracted-images";
+        std::string cmd = exe + commonParam + param;
+        
+        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+        system(cmd.c_str());
+        
+        param = " --train-svm-from-files";
+        cmd = exe + commonParam + param;
+        
+        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+        system(cmd.c_str());
+        
+        param = " --predict-extracted-images";
+        cmd = exe + commonParam + param;
+        
+        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+        system(cmd.c_str());
+        
+        
+        
+        
+        param = " --predict --extract-mispredicted-svm --stop-after-misprediction --start-in-frame " + format("%d", i);
+        cmd = exe + commonParam + param;
+        
+        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+        system(cmd.c_str());
+    }
 }
 
 void PedestrianDetectionBenchmark::run()
@@ -279,7 +340,7 @@ void PedestrianDetectionBenchmark::run()
         usage();
         exit(0);
     }
-        
+    
     std::string outDir = "data";
 
     // Initialize downloader
@@ -295,10 +356,21 @@ void PedestrianDetectionBenchmark::run()
     SeqFileReader reader((outDir +"/"+m_dataset+"/set01/V000.seq").c_str());
     reader.readHeader(&header);
     
-    MatfileReader annotationReader((outDir + "/"+m_dataset+"/annotations/set01/V000.vbb").c_str());
+    annotationReader = MatfileReader((outDir + "/"+m_dataset+"/annotations/set01/V000.vbb").c_str());
     annotationReader.setVerbose(0);
     annotationReader.readVdd();
     
+    if (header.allocatedFrames != annotationReader.getAnnotatedFrames())
+    {
+        printf("[ERROR] number of annotations differ from number of images\n");
+        exit(-1);
+    }
+    
+    if (m_doAutomatedTraining)
+    {
+        automatedTraining();
+        exit(0);
+    }
     
     hogProcess.m_rotateHog = m_doRotateHog;
     
@@ -319,11 +391,7 @@ void PedestrianDetectionBenchmark::run()
     classifier.setTrainingInputFile(svmTrainingInput);
     classifier.setModelFile(svmModel);
     
-    if (header.allocatedFrames != annotationReader.getAnnotatedFrames())
-    {
-        printf("[ERROR] number of annotations differ from number of images\n");
-        exit(-1);
-    }
+    
     
     if (m_doTrainSvmFromFiles)
     {
@@ -558,7 +626,7 @@ void PedestrianDetectionBenchmark::run()
                         if (m_doExtractImagesSvm)
                         {
                             extractor.saveSvmTraining(inputPersons, true);
-                            extractor.saveSvmTraining(nonPersons, false);
+                            //extractor.saveSvmTraining(nonPersons, false);
                         }
                         if (m_doExtractHogSvm)
                         {                        
@@ -647,6 +715,9 @@ void PedestrianDetectionBenchmark::usage()
     printf("--extract-mispredicted-svm\n");
     printf("\tExtract the mispredicted images\n");
     printf("\n");
+    printf("--stop-after-misprediction\n");
+    printf("\tStop after misprediction so that the model can be retrained\n");
+    printf("\n");    
     printf("--predict\n");
     printf("\tRun pedestrian detection by using the SVM model\n");
     printf("\n");
@@ -656,7 +727,10 @@ void PedestrianDetectionBenchmark::usage()
     printf("--train-svm-from-files\n");
     printf("\tRead svm extracted data from SVM files and create a SVM model\n");
     printf("\tIt expects the files pos_svm.svm and neg_svm.svm for every dataset\n");
-    printf("\n");    
+    printf("\n");
+    printf("--automated-training\n");
+    printf("\tAutomatically trains the model by iterating extraction and prediction\n");
+    printf("\n");
     printf("--zoom <n>\n");
     printf("\tSets the window zoom\n");
     printf("\n");

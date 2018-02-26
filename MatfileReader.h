@@ -65,7 +65,9 @@
 class MatfileReader 
 {
 public:
+    MatfileReader();
     MatfileReader(const char* file);
+    MatfileReader(MatfileReader& orig);
     virtual ~MatfileReader();
 public:
     bool isOpen();

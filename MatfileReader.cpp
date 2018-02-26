@@ -28,8 +28,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include <typeinfo>
+
+MatfileReader::MatfileReader()
+{
+    m_path = "";
+    m_fp = NULL;
+    m_verbose = 1;
+    m_annotations = NULL;
+}
 
 MatfileReader::MatfileReader(const char* file)
 {
@@ -37,6 +46,14 @@ MatfileReader::MatfileReader(const char* file)
     m_fp = NULL;
     m_verbose = 1;
     m_annotations = NULL;
+}
+
+MatfileReader::MatfileReader(MatfileReader& orig)
+{
+    m_path = orig.m_path;
+    m_fp = orig.m_fp;
+    m_verbose = orig.m_verbose;
+    m_annotations = orig.m_annotations;
 }
 
 
@@ -68,7 +85,7 @@ std::string MatfileReader::readString(int len)
 {
     char s[len];
     
-    fread(s, sizeof(char) , len, m_fp);
+    size_t nread = fread(s, sizeof(char) , len, m_fp);
     
     std::string ret = "";
     
@@ -610,21 +627,24 @@ const char* MatfileReader::dataTypeAsString(int dataType)
 char MatfileReader::readInt8()
 {
     char v = 0;
-    fread(&v, 1 , 1, m_fp);
+    size_t nread = fread(&v, 1 , 1, m_fp);
+    assert(nread==1);
     return v;
 }
 
 unsigned char MatfileReader::readUint8()
 {
     unsigned char v = 0;
-    fread(&v, 1 , 1, m_fp);
+    size_t nread = fread(&v, 1 , 1, m_fp);
+//    assert(nread==1);
     return v;
 }
 
 unsigned short MatfileReader::readUint16()
 {
     unsigned short v = 0;
-    fread(&v, 2 , 1, m_fp);
+    size_t nread =fread(&v, 2 , 1, m_fp);
+//    assert(nread==2);
     return v;
 }
 
@@ -632,21 +652,24 @@ unsigned short MatfileReader::readUint16()
 unsigned int MatfileReader::readUint32()
 {
     unsigned int v = 0;
-    fread(&v, 4 , 1, m_fp);
+    size_t nread =fread(&v, 4 , 1, m_fp);
+    assert(nread==1);
     return v;
 }
 
 unsigned long long MatfileReader::readUint64()
 {
     unsigned long long v = 0;
-    fread(&v, 8 , 1, m_fp);
+    size_t nread =fread(&v, 8 , 1, m_fp);
+    assert(nread==1);
     return v;
 }
 
 double MatfileReader::readDouble()
 {
     double v = 0;
-    fread(&v, sizeof(double), 1, m_fp);
+    size_t nread =fread(&v, sizeof(double), 1, m_fp);
+    assert(nread==1);
     return v;
 }
 

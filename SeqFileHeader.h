@@ -38,6 +38,8 @@ public:
 public:
     std::string imagetFormatDescription();
     
+    static std::string format(const char *fmt, ...);
+    
 public:
     int magic;
     std::string name;

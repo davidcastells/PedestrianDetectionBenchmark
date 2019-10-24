@@ -230,12 +230,14 @@ void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock
     for (int y=0; y < 8; y++)
         for (int x=0; x < 8; x++)
         {
+            // get the image cordinates of the cell
             int fx = feature->getImageXFromCellIndexX(xblock, xcell) + x;
             int fy = feature->getImageYFromCellIndexY(yblock, ycell) + y;
 
-            int fx_m1 = (x > 0)? (fx-1) : fx;
+            // consider corner cases
+            int fx_m1 = (fx > 0)? (fx-1) : fx;
             int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
-            int fy_m1 = (y > 0)? (fy-1) : fy;
+            int fy_m1 = (fy > 0)? (fy-1) : fy;
             int fy_p1 = (fy < (image->m_width-1))? (fy+1) : fy;
 
             gradientx[x+y*8] = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);

@@ -238,7 +238,7 @@ void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock
             int fx_m1 = (fx > 0)? (fx-1) : fx;
             int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
             int fy_m1 = (fy > 0)? (fy-1) : fy;
-            int fy_p1 = (fy < (image->m_width-1))? (fy+1) : fy;
+            int fy_p1 = (fy < (image->m_height-1))? (fy+1) : fy;
 
             gradientx[x+y*8] = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
             gradienty[x+y*8] = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);

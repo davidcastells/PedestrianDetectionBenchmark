@@ -95,6 +95,9 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doResizePersonsY = 128;
     m_fps = -1;
     
+    m_useGPU = false;
+    m_useFPGA = false;
+    
     m_invocationPath = args[0];
     
     for (int i=1; i < argc; i++)
@@ -181,6 +184,14 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
         else if (strcmp(args[i], "--dump-annotation-info") == 0)
         {
             m_dumpAnnotationInfo = true;
+        }
+        else if (strcmp(args[i], "--use-gpu") == 0)
+        {
+            m_useGPU = true;
+        }
+        else if (strcmp(args[i], "--use-fpga") == 0)
+        {
+            m_useFPGA = true;
         }
         else
         {

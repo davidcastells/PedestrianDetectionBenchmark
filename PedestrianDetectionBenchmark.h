@@ -87,6 +87,9 @@ protected:
     
     bool m_dumpAnnotationInfo;
     
+    bool m_useGPU;
+    bool m_useFPGA;
+    
     int m_minPersonHeight;
     int m_minPersonWidth;
     int m_zoom;

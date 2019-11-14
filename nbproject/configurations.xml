@@ -15,6 +15,7 @@
       <itemPath>ImageIO.h</itemPath>
       <itemPath>Matfile.h</itemPath>
       <itemPath>MatfileReader.h</itemPath>
+      <itemPath>OpenCLUtils.h</itemPath>
       <itemPath>PedestrianDetectionBenchmark.h</itemPath>
       <itemPath>PerformanceLap.h</itemPath>
       <itemPath>ReferenceSubImage.h</itemPath>
@@ -22,6 +23,7 @@
       <itemPath>SeqFileHeader.h</itemPath>
       <itemPath>SeqFileReader.h</itemPath>
       <itemPath>XWindow.h</itemPath>
+      <itemPath>scoped_ptrs.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -41,6 +43,7 @@
       <itemPath>ImageIO.cpp</itemPath>
       <itemPath>Matfile.cpp</itemPath>
       <itemPath>MatfileReader.cpp</itemPath>
+      <itemPath>OpenCLUtils.cpp</itemPath>
       <itemPath>PedestrianDetectionBenchmark.cpp</itemPath>
       <itemPath>PerformanceLap.cpp</itemPath>
       <itemPath>ReferenceSubImage.cpp</itemPath>
@@ -62,6 +65,7 @@
       <itemPath>Makefile</itemPath>
       <itemPath>README.md</itemPath>
     </logicalFolder>
+    <itemPath>md/prerequisites.md</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>.</Elem>
@@ -131,6 +135,10 @@
       </item>
       <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OpenCLUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OpenCLUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
@@ -158,6 +166,10 @@
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Cygwin-Release" type="1">
@@ -224,6 +236,10 @@
       </item>
       <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OpenCLUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OpenCLUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
@@ -253,6 +269,10 @@
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Ubuntu-Debug" type="1">
@@ -330,6 +350,10 @@
       </item>
       <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OpenCLUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OpenCLUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
@@ -358,6 +382,10 @@
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="11">
       </item>
+      <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="Ubuntu-Release" type="1">
       <toolsSet>
@@ -375,6 +403,7 @@
           <standard>11</standard>
           <incDir>
             <pElem>/usr/include/libsvm</pElem>
+            <pElem>/usr/local/cuda/include</pElem>
           </incDir>
           <commandLine>-fopenmp</commandLine>
         </ccTool>
@@ -385,11 +414,15 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
+          <linkerAddLib>
+            <pElem>/usr/local/cuda-10.1/targets/x86_64-linux/lib/</pElem>
+          </linkerAddLib>
           <linkerLibItems>
             <linkerOptionItem>-lX11</linkerOptionItem>
             <linkerOptionItem>-lpng</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lsvm</linkerOptionItem>
+            <linkerOptionItem>-lOpenCL</linkerOptionItem>
           </linkerLibItems>
           <commandLine>-O3</commandLine>
         </linkerTool>
@@ -438,6 +471,10 @@
       </item>
       <item path="MatfileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OpenCLUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OpenCLUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PedestrianDetectionBenchmark.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="PedestrianDetectionBenchmark.h" ex="false" tool="3" flavor2="0">
@@ -467,6 +504,10 @@
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

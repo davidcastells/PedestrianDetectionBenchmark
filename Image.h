@@ -41,6 +41,7 @@ public:
     int getB(int x, int y);
     int getBytes();
     void convertToYuv();
+    void convertToMonochrome();
     void resizeFrom(Image* src);
     
 private:
@@ -52,6 +53,8 @@ public:
     int m_height;
     int m_stride;   // number of pixels from a pixel in one row to the pixel to the
                     // next row
+    int m_channels;
+    
     unsigned char* m_buffer;
     bool           m_ownBuffer;
     

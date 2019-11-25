@@ -72,7 +72,7 @@ HOGFeature::HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellH
     int cellsPerRow = (m_numBlocksX * m_blockWidth);
     int cellsPerCol = (m_numBlocksY * m_blockHeight);
     
-    m_buffer = new unsigned int[cellsPerRow*cellsPerCol*3*9];
+    m_buffer = new unsigned int[cellsPerRow*cellsPerCol*m_colorChannels*9];
     
     for (int i=0; i < cellsPerRow*cellsPerCol*m_colorChannels*9; i++)
         m_buffer[i] = 0;

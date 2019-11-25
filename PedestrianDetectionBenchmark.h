@@ -63,6 +63,7 @@ public:
     
 protected:
     bool m_doUsage;
+    bool m_doHeadless;
     bool m_doPlayInputSequence;
     bool m_doPlayInputAsHog;
     bool m_doExtractFrames;
@@ -79,7 +80,7 @@ protected:
     bool m_doPredictExtractedImages;
     bool m_doAutomatedTraining;
     bool m_doMaxFps;
-    bool m_doYuv;
+    bool m_doYuv;                               // Transform the RGB channels to YUV
     bool m_doMonochrome;
     bool m_doRotateHog;
     bool m_doResizePersons;
@@ -96,6 +97,9 @@ protected:
     int m_startInFrame;
     int m_doResizePersonsX;
     int m_doResizePersonsY;
+    int m_slidingWindowInc;
+    int m_multiscales;
+    double m_multiscaleIncFactor;
     double m_fps;
     std::string m_dataset;
     

@@ -295,6 +295,10 @@ void SeqFileReader::readJpegImageData(SeqFileHeader* header, Image* image)
   fseek(m_fp, offset + 10, SEEK_SET );
 }
 
+/**
+ * Reads the RAW RGB data from a file
+ * @param image
+ */
 void SeqFileReader::readRawImageData(Image* image)
 {
     int ret = fread(image->m_buffer, sizeof(unsigned char), image->getBytes(), m_fp);

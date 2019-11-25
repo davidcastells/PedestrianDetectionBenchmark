@@ -38,7 +38,7 @@ public:
 
 public:
     static void scanNextPngStartMarker(FILE* fp);
-    static BufferedImage* loadImage(const char* filename);
+    static BufferedImage* loadImage(const char* filename, int numChannels);
 };
 
 #endif /* IMAGEIO_H */

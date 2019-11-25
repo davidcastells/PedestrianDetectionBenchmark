@@ -50,8 +50,10 @@
       <itemPath>SVMClassifier.cpp</itemPath>
       <itemPath>SeqFileHeader.cpp</itemPath>
       <itemPath>SeqFileReader.cpp</itemPath>
+      <itemPath>StringUtils.cpp</itemPath>
       <itemPath>XWindow.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
+      <itemPath>test.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -161,6 +163,8 @@
       </item>
       <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="StringUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="XWindow.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
@@ -170,6 +174,8 @@
       <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Cygwin-Release" type="1">
@@ -264,6 +270,8 @@
       </item>
       <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="StringUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="XWindow.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
@@ -273,6 +281,8 @@
       <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Ubuntu-Debug" type="1">
@@ -376,6 +386,8 @@
       </item>
       <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="StringUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="XWindow.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="XWindow.h" ex="false" tool="3" flavor2="0">
@@ -385,6 +397,8 @@
       <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Ubuntu-Release" type="1">
@@ -405,7 +419,7 @@
             <pElem>/usr/include/libsvm</pElem>
             <pElem>/usr/local/cuda/include</pElem>
           </incDir>
-          <commandLine>-fopenmp</commandLine>
+          <commandLine>-O3 -fopenmp</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -424,7 +438,7 @@
             <linkerOptionItem>-lsvm</linkerOptionItem>
             <linkerOptionItem>-lOpenCL</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-O3</commandLine>
+          <commandLine>-O3 -fopenmp</commandLine>
         </linkerTool>
       </compileType>
       <item path="BoundingBox.cpp" ex="false" tool="1" flavor2="9">
@@ -498,6 +512,8 @@
       <item path="SeqFileReader.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="SeqFileReader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="StringUtils.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="XWindow.cpp" ex="false" tool="1" flavor2="9">
       </item>

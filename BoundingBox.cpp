@@ -63,7 +63,7 @@ BoundingBox::~BoundingBox()
  * @param box
  * @return 
  */
-bool BoundingBox::colide(BoundingBox& box)
+bool BoundingBox::collide(BoundingBox& box)
 {
     int xa1 = m_x;
     int xa2 = m_x + m_width;
@@ -96,13 +96,27 @@ bool BoundingBox::colide(BoundingBox& box)
     return true;
 }
 
-bool BoundingBox::colide(std::vector<BoundingBox> boxes)
+bool BoundingBox::collide(std::vector<BoundingBox> boxes)
 {
     for (int i=0; i< boxes.size(); i++)
-        if (colide(boxes.at(i)))
+        if (collide(boxes.at(i)))
             return true;
     
     return false;
+}
+
+/**
+ * Returns the element that collides
+ * @param boxes
+ * @return index of the element that collides, or -1 otherwise
+ */
+int BoundingBox::collisionIndex(std::vector<BoundingBox> boxes)
+{
+    for (int i=0; i< boxes.size(); i++)
+        if (collide(boxes.at(i)))
+            return i;
+    
+    return -1;
 }
 
 void BoundingBox::centerBox(int nw, int nh)
@@ -119,3 +133,10 @@ void BoundingBox::centerBox(int nw, int nh)
     m_width = expectedWidth;
 }
 
+void BoundingBox::scaleDown(double factor)
+{
+    m_x /= factor;
+    m_y /= factor;
+    m_width /= factor;
+    m_height /= factor;
+}

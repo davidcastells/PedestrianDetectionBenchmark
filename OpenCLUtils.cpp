@@ -39,21 +39,6 @@ OpenCLUtils::~OpenCLUtils()
 {
 }
 
-std::string format(const char *fmt, ...)
-{
-    std::string result = "";
-
-    char buffer[256];
-    va_list args;
-    va_start (args, fmt);
-    vsprintf (buffer,fmt, args);
-    
-    result.append(buffer);
-    
-    va_end (args);
-  
-    return result;
-}
 
 
 cl_platform_id selectPlatform(cl_uint selected_platform_index)

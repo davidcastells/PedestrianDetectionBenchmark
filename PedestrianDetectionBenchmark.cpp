@@ -64,6 +64,7 @@ PedestrianDetectionBenchmark::~PedestrianDetectionBenchmark()
 void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
 {
     m_doUsage = false;
+    m_doHeadless = false;
     m_doPlayInputSequence = false;
     m_doPlayInputAsHog = false;
     m_doExtractFrames = false;
@@ -94,7 +95,9 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doResizePersonsX = 64;
     m_doResizePersonsY = 128;
     m_fps = -1;
-    
+    m_slidingWindowInc = 16;
+    m_multiscaleIncFactor = 1.05;
+    m_multiscales = 10;
     m_useGPU = false;
     m_useFPGA = false;
     
@@ -104,6 +107,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     {
         if (strcmp(args[i], "--help") == 0)
             m_doUsage = true;
+        else if (strcmp(args[i], "--headless") == 0)
+            m_doHeadless = true;
         else if (strcmp(args[i], "--play-input-sequence") == 0)
             m_doPlayInputSequence = true;
         else if (strcmp(args[i], "--play-input-as-hog") == 0)
@@ -248,7 +253,7 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
 
         if (isNeg | isPos)
         {
-            Image* image = ImageIO::loadImage(path.c_str());
+            Image* image = ImageIO::loadImage(path.c_str(), (m_doMonochrome)? 1 : 3);
             HOGFeature* feature = hogProcess.createFeature(image);
 
             classifier.appendHogFeatureToSvmFile(isPos, feature);
@@ -259,39 +264,111 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
     }    
 }
 
-
-void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* image, std::vector<BoundingBox>& annotatedBoxes)
+/**
+ * 
+ * @param image
+ * @param annotatedBoxes
+ */
+void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std::vector<BoundingBox>& annotatedBoxes)
 {
-    //std::vector<BoundingBox> predictedBoxes = 
-    for (int slideY=0; slideY < (image->m_height - m_doResizePersonsY); slideY+=8)
-        for (int slideX=0; slideX < (image->m_width - m_doResizePersonsX); slideX+=8)
-        {
-            //printf("Testing %d %d %d %d\n", slideX, slideY);
-            BoundingBox box(slideX, slideY, m_doResizePersonsX, m_doResizePersonsY, false);
-            ReferenceSubImage subImage(image, &box);
+    // We keep a vector of notFound people boxes, so that at the end we can 
+    // get a list of False Negatives
+    std::vector<BoundingBox> notFound;
 
-            HOGFeature* feature = hogProcess.createFeature(&subImage);
-            double ret = classifier.predict(feature);
-            delete feature;
+    // fill the not found vector
+    for (int i=0; i < annotatedBoxes.size(); i++)
+        notFound.push_back(annotatedBoxes[i]);
 
-            if (ret > 0.7)
+    double curW = refImage->m_width;
+    double curH = refImage->m_height;
+    double scaleFactor = 1;
+
+    for (int scaleIndex=0; scaleIndex < m_multiscales; scaleIndex++)
+    {        
+        printf("scale: %f (%d, %d, %d)\n", scaleFactor, (int)curW, (int)curH, refImage->m_channels);
+
+        BufferedImage* image = new BufferedImage(curW, curH, refImage->m_channels);
+        
+        printf("before resize\n");
+        image->resizeFrom(refImage);
+        
+        
+        for (int slideY=0; slideY < (image->m_height - m_doResizePersonsY); slideY+=m_slidingWindowInc)
+            for (int slideX=0; slideX < (image->m_width - m_doResizePersonsX); slideX+=m_slidingWindowInc)
             {
-                window.drawBoundingBox(box);
-                window.flush();
-                printf("Score: %0.2f - Found Person at %d %d %d %d\n", ret, slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
-                
-                if (m_doExtractMispredictedSvm)
-                    if (!box.colide(annotatedBoxes))
-                    {
-                        // the box is identified as person, but does not colide with any annotation,
-                        // add it as a negative sample
-                        extractor.saveSvmTraining(&subImage, false);
-                        if (m_doStopAfterMisprediction)
-                            exit(0);
-                    }
-            }
-        }
+                //printf("Testing %d %d %d %d\n", slideX, slideY);
+                BoundingBox box(slideX, slideY, m_doResizePersonsX, m_doResizePersonsY, false);
+                ReferenceSubImage subImage(image, &box);
 
+
+                HOGFeature* feature = hogProcess.createFeature(&subImage);
+
+                double ret = classifier.predict(feature);
+                delete feature;
+
+
+
+                if (ret > 0.7)
+                {
+                    box.scaleDown(scaleFactor);
+                    
+                    if (!m_doHeadless)
+                    {
+                        window.drawBoundingBox(box);
+                        window.flush();
+                    }
+                    printf("Score: %0.2f - Found Person at %d %d %d %d - Scale: %d (%f)\n", ret, 
+                            (int) box.m_x, (int) box.m_y, (int) box.m_width, (int) box.m_height, scaleIndex, scaleFactor);
+
+                    if (box.collide(annotatedBoxes))
+                    {                    
+                        // remove this box from the notfound list
+                        int collisionIndex = box.collisionIndex(notFound);
+
+                        if (collisionIndex != -1)
+                            notFound.erase(notFound.begin()+collisionIndex);
+                        
+                    }
+                    else
+                    {
+                        if (m_doExtractMispredictedSvm)
+                        {
+                            // the box is identified as person, but does not colide with any annotation,
+                            // add it as a negative sample
+                            extractor.saveSvmTraining(&subImage, false);
+                            if (m_doStopAfterMisprediction)
+                                exit(0);
+                        }
+                    }
+                }
+            }
+        
+        scaleFactor *= m_multiscaleIncFactor;
+        curW *= m_multiscaleIncFactor;
+        curH *= m_multiscaleIncFactor;
+        
+        delete image;
+    }
+    
+    for (int i=0; i < notFound.size(); i++)
+    {
+        BoundingBox box = notFound[i];
+        printf("Score: 0 - Missed Person at %f %f %f %f\n", box.m_x, box.m_y, box.m_width, box.m_height);
+        
+        if (m_doExtractMispredictedSvm)
+        {
+            // the box was not identified as person, 
+            // add it as a positive sample
+            ReferenceSubImage subImage(refImage, &box);
+            BufferedImage bufImg(m_doResizePersonsX, m_doResizePersonsY, refImage->m_channels);
+
+            bufImg.resizeFrom(&subImage);
+
+            extractor.saveSvmTraining(&bufImg, true);
+            if (m_doStopAfterMisprediction)
+                exit(0);
+        }
+    }
 }
 
 void PedestrianDetectionBenchmark::automatedTraining()
@@ -301,26 +378,34 @@ void PedestrianDetectionBenchmark::automatedTraining()
     std::string commonParam = "";
     
     if (m_doResizePersons)
-    {
         commonParam.append(format(" --resize-persons-as %d %d", m_doResizePersonsX, m_doResizePersonsY));
-    }
+    if (m_doMonochrome)
+        commonParam.append(" --mono");    
+    if (m_doHeadless)
+        commonParam.append(" --headless");
+    if (m_dumpAnnotationInfo)
+        commonParam.append(" --dump-annotation-info");
     
     commonParam.append(format(" --min-person-height %d", m_minPersonHeight));
     
     std::string exe = std::string(m_invocationPath);
     
-    std::string cmd = exe + commonParam + " --extract-images-svm";
-    printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-    system(cmd.c_str());
+    //std::string cmd = exe + commonParam + " --extract-images-svm";
+    //printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+    //system(cmd.c_str());
     
     for (int i=0; i < n; i++)
     {
+        // Creates the SVM input file from the extracted images 
+        // This loads the extracted images, gets the HOG features and save
+        // them in the input file trainingInput.svm
         std::string param = " --create-svm-from-extracted-images";
         std::string cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
         system(cmd.c_str());
-        
+
+        // Creates the SVM model from the input files
         param = " --train-svm-from-files";
         cmd = exe + commonParam + param;
         
@@ -332,8 +417,6 @@ void PedestrianDetectionBenchmark::automatedTraining()
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
         system(cmd.c_str());
-        
-        
         
         
         param = " --predict --extract-mispredicted-svm --stop-after-misprediction --start-in-frame " + format("%d", i);
@@ -435,36 +518,36 @@ void PedestrianDetectionBenchmark::run()
     {
         printf("[INFO] Creating SVM input file from extracted images\n");
 
-    File dir(extractor.m_extractionPath);
+        File dir(extractor.m_extractionPath);
 
-    std::vector<File> files = dir.listFiles();
+        std::vector<File> files = dir.listFiles();
 
-    for (int i=0; i < files.size(); i++)
-    {
-        std::string path = files.at(i).getPath();
-        //printf("File %d = %s\n", i, files.at(i).getPath().c_str());
-
-        bool isNeg = path.find("svm_neg") != std::string::npos;
-        bool isPos = path.find("svm_pos") != std::string::npos;
-
-        if (isNeg | isPos)
+        for (int i=0; i < files.size(); i++)
         {
-            Image* image = ImageIO::loadImage(path.c_str());
-            HOGFeature* feature = hogProcess.createFeature(image);
+            std::string path = files.at(i).getPath();
+            //printf("File %d = %s\n", i, files.at(i).getPath().c_str());
 
-            double v = classifier.predict(feature);
-            
-            printf("Predict %s [%s]: %0.2f ", path.c_str() , (isPos)?"+":"-", v);
+            bool isNeg = path.find("svm_neg") != std::string::npos;
+            bool isPos = path.find("svm_pos") != std::string::npos;
 
-            bool isOk = (isNeg && v < 0.5) || (isPos && v > 0.5);
-            
-            printf(isOk? "[OK]":"##### error #####");
-            
-            printf("\n");
-            delete feature;
-            delete image;
-        }
-    }    
+            if (isNeg | isPos)
+            {
+                Image* image = ImageIO::loadImage(path.c_str(), (m_doMonochrome)? 1 : 3);
+                HOGFeature* feature = hogProcess.createFeature(image);
+
+                double v = classifier.predict(feature);
+
+                printf("Predict %s [%s]: %0.2f ", path.c_str() , (isPos)?"+":"-", v);
+
+                bool isOk = (isNeg && v < 0.5) || (isPos && v > 0.5);
+
+                printf(isOk? "[OK]":"##### error #####");
+
+                printf("\n");
+                delete feature;
+                delete image;
+            }
+        }    
     }
     
     bool loopFrames = m_doPlayInputSequence | m_doPlayInputAsHog | m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractImagesSvm | m_doExtractHogSvm | m_doPredict;
@@ -474,8 +557,9 @@ void PedestrianDetectionBenchmark::run()
         
         PerformanceLap lap;
         
-        if (m_doPlayInputSequence | m_doPlayInputAsHog | m_doPredict)
-            window.create(header.width, header.height, header.bitDepth, m_zoom);
+        if (m_doPlayInputSequence | m_doPlayInputAsHog | m_doPredict) 
+            if (!m_doHeadless)
+                window.create(header.width, header.height, header.bitDepth, m_zoom);
         
         if (m_fps == -1)
             m_fps = header.suggestedFrameRate ;
@@ -507,7 +591,9 @@ void PedestrianDetectionBenchmark::run()
             
             if (m_doYuv)
                 image.convertToYuv();
-            
+            else if (m_doMonochrome)
+                image.convertToMonochrome();
+                
             std::vector<BoundingBox> annotatedBoxes = annotationReader.getBoundingBoxes(i);
             std::vector<BoundingBox> centeredBoxes = annotatedBoxes;
             
@@ -523,6 +609,8 @@ void PedestrianDetectionBenchmark::run()
                             box.m_vx, box.m_vy, box.m_vw, box.m_vh);
                 }
             }
+            
+            
             
             if (m_doResizePersons)
             {
@@ -553,27 +641,35 @@ void PedestrianDetectionBenchmark::run()
                 }
             }
             
+            
+            
             if (m_doPredict | m_doPlayInputSequence)
             {
-                window.drawRGBImage(&image);
+                if (!m_doHeadless)
+                    window.drawRGBImage(&image);
             }
+            
+            
             
             if (m_doPredict)
             {
                 slidingWindowPrediction(&image, annotatedBoxes);
             }
             
+            
             if (m_doPlayInputSequence)
             {
-                if (m_doDrawCenteredBoxes)
-                    window.drawBoundingBoxes(centeredBoxes);
-                else
-                    window.drawBoundingBoxes(annotatedBoxes);
+                if (!m_doHeadless)
+                    if (m_doDrawCenteredBoxes)
+                        window.drawBoundingBoxes(centeredBoxes);
+                    else
+                        window.drawBoundingBoxes(annotatedBoxes);
             }
             
             if (m_doPredict | m_doPlayInputSequence)
             {
-                window.flush();
+                if (!m_doHeadless)
+                    window.flush();
             }
             
             if (m_doPlayInputAsHog)
@@ -583,9 +679,12 @@ void PedestrianDetectionBenchmark::run()
                 
                 if (m_doPlayInputAsHog)
                 {
-                    window.drawRGBImage(hogImage);
-                    window.drawBoundingBoxes(annotatedBoxes);
-                    window.flush();
+                    if (!m_doHeadless)
+                    {
+                        window.drawRGBImage(hogImage);
+                        window.drawBoundingBoxes(annotatedBoxes);
+                        window.flush();
+                    }
                 }
                 delete feature;
                 delete hogImage;

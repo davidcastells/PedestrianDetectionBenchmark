@@ -135,6 +135,7 @@ double SVMClassifier::predict(HOGFeature* feature)
     
     int sx = sizeof(svm_node) * predict_x_size;
     
+    
     //memset(x, 0, sx);
     createSvmNodeFromHogFeature(feature, predict_x);
     
@@ -153,7 +154,7 @@ void SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* s
     int featureNum = 1;
 
     
-    for (int c=0; c < 3; c++)
+    for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
                 for (int y=0; y < feature->m_blockHeight; y++)
@@ -181,6 +182,8 @@ void SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* s
 void SVMClassifier::importModel()
 {
     model = svm_load_model(m_modelFile.c_str());
+    
+//    printf("load model = %p\n", model);
 }
 
 void SVMClassifier::setTrainingInputFile(std::string& inputFile)
@@ -339,7 +342,7 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
     
     int featureNum = 1;
     
-    for (int c=0; c < 3; c++)
+    for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
                 for (int y=0; y < feature->m_blockHeight; y++)

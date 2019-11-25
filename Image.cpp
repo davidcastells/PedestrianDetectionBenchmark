@@ -25,6 +25,7 @@
 
 #include "Image.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -32,6 +33,7 @@ Image::Image()
 {
     m_ownBuffer = false;
     m_buffer = NULL;
+    m_channels = 3;     // by default we use RGB
 }
 
 Image::~Image()
@@ -45,7 +47,7 @@ Image::~Image()
 
 int Image::getBytes()
 {
-    return m_width * m_height * 3;
+    return m_width * m_height * m_channels;
 }
 
 void Image::convertToYuv()
@@ -65,8 +67,33 @@ void Image::convertToYuv()
         }
 }
 
+void Image::convertToMonochrome()
+{
+    m_channels = 1;
+    
+    for (int y=0; y < m_height; y++)
+        for (int x=0; x < m_width; x++)
+        {
+            int r = m_buffer[(y*m_stride+x)*3];
+            int g = m_buffer[(y*m_stride+x)*3+1];
+            int b = m_buffer[(y*m_stride+x)*3+2];
+            int cy = 0.299 * r + 0.587 * g + 0.114 * b;
+            int cu = 0.492 * (b-cy);
+            int cv = 0.877 * (r-cy);
+            m_buffer[(y*m_stride+x)*3] = cy;
+            m_buffer[(y*m_stride+x)*3+1] = cy; // cu; // u;
+            m_buffer[(y*m_stride+x)*3+2] = cy; // cv; //v;
+        }
+}
+
+
 int Image::get(int x, int y, int color)
 {
+    if (x < 0) x = 0;
+    if (x >= m_width) x = m_width-1;
+    if (y < 0) y = 0;
+    if (y >= m_height) y = m_height -1;
+    
     return m_buffer[(y*m_stride+x)*3+color];
 }
 
@@ -82,11 +109,17 @@ int Image::getR(int x, int y)
 
 int Image::getG(int x, int y)
 {
+    if (m_channels == 1)
+        return getR(x, y);
+    
     return m_buffer[(y*m_stride+x)*3+1];
 }
 
 int Image::getB(int x, int y)
 {
+    if (m_channels == 1)
+        return getR(x, y);
+    
     return m_buffer[(y*m_stride+x)*3+2];
 }
 
@@ -96,18 +129,23 @@ int Image::getB(int x, int y)
  */
 void Image::resizeFrom(Image* src)
 {
-    double factor = (double) src->m_height / (double) m_height;
+    m_objId = src->m_objId;
     
-    for (int c=0; c < 3; c++)
+    double factor = ((double) src->m_height) / ((double) m_height);
+    
+    for (int c=0; c < m_channels; c++)
         for (int y = 0; y < m_height; y++)
             for (int x = 0; x < m_width; x++)
             {
                 double sx = x * factor;
                 double sy = y * factor;
 
+//                printf("set %d, %d, %d from %f %f\n", x, y, c, sx, sy);
+
                 int v = src->interpolate(sx, sy, c);
                 
                 set(x, y, c, v);
+                
             }
 }
 
@@ -119,12 +157,12 @@ void Image::resizeFrom(Image* src)
  */
 int Image::interpolate(double x, double y, int color) 
 {
-
     int ix = (int)x;
     int iy = (int)y;
     double p = x - ix; // sub-pixel offset in the x axis
     double q = y - iy; // sub-pixel offset in the y axis
 
+//    printf("ix: %d iy: %d p: %f q: %f\n", ix, iy, p, q);
 //    if ((ix < 2) || (iy < 2) || (ix >= m_width-3) || (iy >= m_height-3))
 //        return 0; // if pixel or neighbors are out of the image
 

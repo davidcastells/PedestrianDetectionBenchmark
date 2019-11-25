@@ -38,12 +38,19 @@ ReferenceSubImage::ReferenceSubImage(Image* image, int x, int y, int w, int h)
     m_buffer = &image->m_buffer[(int)(((y*image->m_stride)+x)*3)];
     m_ownBuffer = false;
     m_objId = 0;
+    m_channels = image->m_channels;
     
     m_reference = image;
     m_referenceX = x;
     m_referenceY = y;
 }
 
+
+/**
+ * Create a subimage with a reference to an original image
+ * @param image
+ * @param box
+ */
 ReferenceSubImage::ReferenceSubImage(Image* image, BoundingBox* box)
 {
     m_reference = image;
@@ -53,10 +60,10 @@ ReferenceSubImage::ReferenceSubImage(Image* image, BoundingBox* box)
     m_width = box->m_width;
     m_stride = image->m_stride;
     m_height = box->m_height;
-    m_buffer = &image->m_buffer[(int)(((m_referenceY*image->m_stride)+m_referenceX)*3)];
+    m_buffer = &image->m_buffer[(int)(((m_referenceY*m_stride)+m_referenceX)*3)];
     m_ownBuffer = false;
     m_objId = box->m_objId;
-    
+    m_channels = image->m_channels;
     
 }
 

@@ -111,10 +111,10 @@ std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> ima
  */
 HOGFeature* HOGProcessor::createFeature(Image* image)
 {
-    HOGFeature* feature = new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, 3);
+    HOGFeature* feature = new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, image->m_channels);
     
     #pragma omp parallel for
-    for (int colorChannel = 0; colorChannel < 3; colorChannel++)
+    for (int colorChannel = 0; colorChannel < image->m_channels; colorChannel++)
     {
         for (int yblock=0; yblock < feature->m_numBlocksY; yblock++)
             for (int xblock=0; xblock < feature->m_numBlocksX; xblock++)
@@ -264,7 +264,7 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
     double maxNormalization = 0;
     
     // if global normalization
-    for (int colorChannel =0 ; colorChannel < 3; colorChannel++)
+    for (int colorChannel =0 ; colorChannel < feature->m_colorChannels; colorChannel++)
         for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
             for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
@@ -280,7 +280,7 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
     
     maxNormalization = 255 / maxNormalization;
     
-    for (int colorChannel =0 ; colorChannel < 3; colorChannel++)
+    for (int colorChannel =0 ; colorChannel < feature->m_colorChannels; colorChannel++)
         for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
             for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)

@@ -50,6 +50,7 @@ ImageExtractor::~ImageExtractor()
 void ImageExtractor::setFrameNumber(int n)
 {
     m_frameNumber = n;
+    
 }
 
 void ImageExtractor::setExtractionPath(const char* path)
@@ -114,7 +115,7 @@ std::vector<Image*> ImageExtractor::getNonPersons(std::vector<BoundingBox> boxes
         // create a random box
         BoundingBox box = createRandomBox(m_image->m_width, m_image->m_height, m_resizeX, m_resizeY);
         
-        if (!box.colide(boxes))
+        if (!box.collide(boxes))
         {
             box.m_objId = imagesExtracted;
             image = new ReferenceSubImage(m_image, &box);
@@ -298,7 +299,7 @@ void ImageExtractor::saveHogFeatureAsCsv(const char* filename, HOGFeature* featu
     
     fprintf(fp, "color; block x; block y; cell x; celly; bin0; bin1; bin2; bin3; bin4; bin5; bin6; bin7; bin8;\n");
     
-    for (int c=0; c < 3; c++)
+    for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
                 for (int y=0; y < feature->m_blockHeight; y++)

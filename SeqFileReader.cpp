@@ -69,7 +69,7 @@ bool SeqFileReader::isOpen()
 unsigned short SeqFileReader::readUSHORT()
 {
     uint16_t v;
-    fread(&v, 2 , 1, m_fp);
+    size_t read = fread(&v, 2 , 1, m_fp);
     return v;
 }
 
@@ -83,21 +83,21 @@ void SeqFileReader::skipBytes(int bytes)
 int SeqFileReader::readDWORD()
 {
     int32_t v;
-    fread(&v, 4 , 1, m_fp);
+    size_t read = fread(&v, 4 , 1, m_fp);
     return v;
 }
 
 int SeqFileReader::readLONG()
 {
     int32_t v;
-    fread(&v, 4 , 1, m_fp);
+    size_t read = fread(&v, 4 , 1, m_fp);
     return v;
 }
 
 double SeqFileReader::readDOUBLE()
 {
     double v;
-    fread(&v, 8, 1, m_fp);
+    size_t read = fread(&v, 8, 1, m_fp);
     return v;
 }
 
@@ -143,7 +143,7 @@ void SeqFileReader::scanNextPngStartMarker()
     
     do
     {
-        fread(header, 1, 8, m_fp);
+        size_t read = fread(header, 1, 8, m_fp);
     
         if (png_sig_cmp((png_byte*)header, 0, 8))
         {
@@ -316,7 +316,7 @@ std::string SeqFileReader::readWideCharString(int len)
 {
     wchar_t s[len];
     
-    fread(s, 2 , len, m_fp);
+    size_t read = fread(s, 2 , len, m_fp);
     
     std::wstring ret = L"";
     ret.append(s);

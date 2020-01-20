@@ -271,6 +271,8 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
  */
 void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std::vector<BoundingBox>& annotatedBoxes)
 {
+    bool extractedNegatives = false;
+    
     // We keep a vector of notFound people boxes, so that at the end we can 
     // get a list of False Negatives
     std::vector<BoundingBox> notFound;
@@ -321,7 +323,8 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                             (int) box.m_x, (int) box.m_y, (int) box.m_width, (int) box.m_height, scaleIndex, scaleFactor);
 
                     if (box.collide(annotatedBoxes))
-                    {                    
+                    {                 
+                        // found bos
                         // remove this box from the notfound list
                         int collisionIndex = box.collisionIndex(notFound);
 
@@ -331,13 +334,15 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                     }
                     else
                     {
+                        // 
                         if (m_doExtractMispredictedSvm)
                         {
                             // the box is identified as person, but does not colide with any annotation,
                             // add it as a negative sample
                             extractor.saveSvmTraining(&subImage, false);
-                            if (m_doStopAfterMisprediction)
-                                exit(0);
+                            extractedNegatives = true;
+                            exit(0);
+                            
                         }
                     }
                 }
@@ -349,6 +354,10 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
         
         delete image;
     }
+    
+    if (m_doStopAfterMisprediction)
+        if (extractedNegatives)
+            exit(0);
     
     for (int i=0; i < notFound.size(); i++)
     {

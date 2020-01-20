@@ -35,6 +35,7 @@ class BufferedImage : public Image
 {
 public:
     BufferedImage(int width, int height);
+    BufferedImage(int width, int height, int channels);
     BufferedImage(unsigned char* buffer, int width, int height);
     //BufferedImage(const BufferedImage& orig);
     virtual ~BufferedImage();

@@ -50,20 +50,21 @@ public:
     std::vector<HOGFeature*> createHogFeatures(std::vector<Image*> images);
 
 protected:
-    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientX, short* gradientY);
-    void computeHistogram(short* gradientX, short* gradientY, unsigned int* pBin);
+    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientX, short* gradientY) __attribute__((deprecated));
+    void computeGradient(Image* image, HOGFeature* feature, int xcell, int ycell, int colorChannel, double* magOut, double* orientationOut);
+    void computeHistogram(short* gradientX, short* gradientY, unsigned int* pBin) __attribute__((deprecated));
+    void computeHistogram(double* magIn, double* orientationIn, double* pBin);
     void getCellX();
     void getCellY();
     
 public:
     bool m_rotateHog;
-private:
-    
 
-    int m_cellWidth;
+public:
+    int m_cellWidth;    // number of pixels per cell x
     int m_cellHeight;
-    int m_blockWidth;
-    int m_blockHeight;    
+    int m_blockWidth;   // number of cells per block in x
+    int m_blockHeight;  // number of cells per block in y
 };
 
 #endif /* HOGPROCESSOR_H */

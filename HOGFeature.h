@@ -27,25 +27,43 @@
 #ifndef HOGFEATURE_H
 #define HOGFEATURE_H
 
-class HOGFeature {
+/**
+ * This is a HOG feature that described an image
+ * 
+ * @param imageWidth
+ * @param imageHeight
+ * @param cellWidth
+ * @param cellHeight
+ * @param blockWidth
+ * @param blockHeight
+ * @param colorChannels
+ */
+class HOGFeature 
+{
+private:
+    HOGFeature(){};
+    
 public:
     HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellHeight, int blockWidth, int blockHeight, int colorChannels);
     //HOGFeature(const HOGFeature& orig);
     virtual ~HOGFeature();
 
 public:
-    unsigned int* getBin(int blockx, int blocky, int cellx, int celly, int color);
+    HOGFeature* createWindow(int blockx, int blocky,  int blockWidth, int blockHeight);
+    double* getBin(int blockx, int blocky, int cellx, int celly, int color);
     int getImageXFromCellIndexX(int xblock, int xcell);
     int getImageYFromCellIndexY(int yblock, int xcell);
     int getCellsInAxisX();
     int getCellsInAxisY();
+    int getOverlappingBlocksInAxisX();
+    int getOverlappingBlocksInAxisY();
     int getBlocksInAxisX();
     int getBlocksInAxisY();
     int getTotalBins();
     
 public:
     /** It contains 3 hog features (1 for each color channel) */
-    unsigned int* m_buffer;
+    double* m_buffer;
     
     unsigned int m_imageWidth;
     unsigned int m_imageHeight;
@@ -56,10 +74,10 @@ public:
     
     unsigned int m_colorChannels;
     
-    unsigned int m_cellWidth;
-    unsigned int m_cellHeight;
-    unsigned int m_blockWidth;
-    unsigned int m_blockHeight;
+    unsigned int m_cellWidth;       // pixels per cell x
+    unsigned int m_cellHeight;      // pixels per cell y
+    unsigned int m_blockWidth;      // cells per block x
+    unsigned int m_blockHeight;     // cells per block y
     
     int m_objId;
 };

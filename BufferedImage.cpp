@@ -31,6 +31,21 @@ BufferedImage::BufferedImage(int width, int height)
     m_width = width;
     m_stride = width;
     m_height = height;
+    m_channels = 3;
+    int imageSize = height*width*3;
+    m_buffer = new unsigned char[imageSize];    
+    m_ownBuffer = true;
+    
+    for (int i=0; i < imageSize; i++)
+        m_buffer[i] = 0;
+}
+
+BufferedImage::BufferedImage(int width, int height, int channels)
+{   
+    m_width = width;
+    m_stride = width;
+    m_height = height;
+    m_channels = channels;
     int imageSize = height*width*3;
     m_buffer = new unsigned char[imageSize];    
     m_ownBuffer = true;

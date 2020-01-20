@@ -51,7 +51,7 @@ void ImageIO::scanNextPngStartMarker(FILE* m_fp)
     
     do
     {
-        fread(header, 1, 8, m_fp);
+        size_t read = fread(header, 1, 8, m_fp);
     
         if (png_sig_cmp((png_byte*)header, 0, 8))
         {
@@ -68,7 +68,7 @@ void ImageIO::scanNextPngStartMarker(FILE* m_fp)
 }
 
 
-BufferedImage* ImageIO::loadImage(const char* filename)
+BufferedImage* ImageIO::loadImage(const char* filename, int numChannels)
 {
     FILE* m_fp = fopen(filename, "rb");
     
@@ -133,6 +133,8 @@ BufferedImage* ImageIO::loadImage(const char* filename)
     png_read_image(png_ptr, row_pointers);
     
     fclose(m_fp);
+    
+    image->m_channels = numChannels;
     
     return image;
 }

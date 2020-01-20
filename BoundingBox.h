@@ -39,8 +39,10 @@ public:
 public:
     bool isPerson();
     void centerBox(int nw, int nh);
-    bool colide(std::vector<BoundingBox> boxes);
-    bool colide(BoundingBox& box);
+    bool collide(std::vector<BoundingBox> boxes);
+    bool collide(BoundingBox& box);
+    int collisionIndex(std::vector<BoundingBox> boxes);
+    void scaleDown(double factor);
     
 public:
     double m_x;

@@ -55,13 +55,16 @@ public:
 private:
     
     char* readLine(FILE *input);
-    svm_node* createSvmNodeFromHogFeature(HOGFeature* feature);
+    void createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* svmVector);
 
 private:
     struct svm_parameter param;		// set by parse_command_line
     struct svm_problem prob;		// set by read_problem
     struct svm_node *x_space;
     struct svm_model *model;
+    
+    svm_node* predict_x;
+    int predict_x_size;
     
     char* line;
     int max_line_len;

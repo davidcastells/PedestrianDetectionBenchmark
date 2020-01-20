@@ -57,6 +57,9 @@ SVMClassifier::SVMClassifier()
     prob.x = NULL;
     x_space = NULL;
     line = NULL;
+    
+    predict_x = NULL;
+    predict_x_size = 0;
 }
 
 SVMClassifier::SVMClassifier(const SVMClassifier& orig)
@@ -74,6 +77,7 @@ SVMClassifier::~SVMClassifier()
     if (prob.x) free(prob.x);
     if (x_space) free(x_space);
     if (line) free(line);
+    if (predict_x) delete predict_x;
 }
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
@@ -115,30 +119,48 @@ double SVMClassifier::predict(HOGFeature* feature)
 {
     double ret;
     double p[3] = {-1, -1};     // person , non-person
-    struct svm_node *x = createSvmNodeFromHogFeature(feature);
+    //struct svm_node *x = createSvmNodeFromHogFeature(feature);
+    
+    if (predict_x == NULL)
+    {
+        predict_x_size = feature->getTotalBins()+1;
+        predict_x = new svm_node[predict_x_size];
+    }
+    else if (predict_x_size < (feature->getTotalBins()+1))
+    {
+        delete [] predict_x;
+        predict_x_size = feature->getTotalBins()+1;
+        predict_x = new svm_node[predict_x_size];
+    }
+    
+    int sx = sizeof(svm_node) * predict_x_size;
+    
+    
+    //memset(x, 0, sx);
+    createSvmNodeFromHogFeature(feature, predict_x);
     
     //ret = svm_predict(model, x);
-    ret = svm_predict_probability(model, x, p);
+    ret = svm_predict_probability(model, predict_x, p);
     
     //free(x);
     return p[0];
 }
 
 
-svm_node* SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature)
+void SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* svmVector)
 {
-    struct svm_node* svmVector = (struct svm_node *) malloc(feature->getTotalBins() * sizeof(struct svm_node));
+    //struct svm_node* svmVector = (struct svm_node *) malloc(feature->getTotalBins() * sizeof(struct svm_node));
     
     int featureNum = 1;
 
     
-    for (int c=0; c < 3; c++)
+    for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
                 for (int y=0; y < feature->m_blockHeight; y++)
                     for (int x=0; x < feature->m_blockWidth; x++)
                     {
-                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+                        double* pBin = feature->getBin(bx, by, x, y, c);
 
                         //fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
                         
@@ -150,7 +172,8 @@ svm_node* SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature)
                         }
                     }
     
-    return svmVector;
+    svmVector[featureNum].index = -1;
+//    return svmVector;
 }
 
 /**
@@ -159,6 +182,8 @@ svm_node* SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature)
 void SVMClassifier::importModel()
 {
     model = svm_load_model(m_modelFile.c_str());
+    
+//    printf("load model = %p\n", model);
 }
 
 void SVMClassifier::setTrainingInputFile(std::string& inputFile)
@@ -317,18 +342,18 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
     
     int featureNum = 1;
     
-    for (int c=0; c < 3; c++)
+    for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
                 for (int y=0; y < feature->m_blockHeight; y++)
                     for (int x=0; x < feature->m_blockWidth; x++)
                     {
-                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+                        double* pBin = feature->getBin(bx, by, x, y, c);
 
                         //fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
 
                         for (int i=0; i < 9; i++)
-                            fprintf(fp, "%d:%d ", featureNum++, pBin[i]);
+                            fprintf(fp, "%d:%f ", featureNum++, pBin[i]);
 
                         
                     }

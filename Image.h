@@ -41,6 +41,7 @@ public:
     int getB(int x, int y);
     int getBytes();
     void convertToYuv();
+    void convertToMonochrome();
     void resizeFrom(Image* src);
     
 private:
@@ -48,10 +49,12 @@ private:
     double interpolate_1D(double N0, double N1, double N2, double N3, double t) ;
     
 public:
-    int m_width;
-    int m_height;
+    int m_width;    // image width in pixels
+    int m_height;   // image height in pixels
     int m_stride;   // number of pixels from a pixel in one row to the pixel to the
                     // next row
+    int m_channels;
+    
     unsigned char* m_buffer;
     bool           m_ownBuffer;
     

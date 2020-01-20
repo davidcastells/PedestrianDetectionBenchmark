@@ -69,7 +69,7 @@ std::string  SeqFileHeader::imagetFormatDescription()
 }
     
 
-std::string format(const char *fmt, ...)
+std::string SeqFileHeader::format(const char *fmt, ...)
 {
     std::string result = "";
 

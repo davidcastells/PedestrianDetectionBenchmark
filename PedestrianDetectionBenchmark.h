@@ -38,6 +38,7 @@
 #include "SVMClassifier.h"
 #include "XWindow.h"
 #include "Image.h"
+#include "MatfileReader.h"
 
 #include <string>
 
@@ -49,18 +50,20 @@ private:
 
 public:
     void parseOptions(int argc, char* args[]);
-    
     void validateOptions();
     
     void run();
     void usage();
     int getAnnotatedFrames();
     
+    void automatedTraining();
+    
     void slidingWindowPrediction(Image* image, std::vector<BoundingBox>& annotatedBoxes);
     void generateSvmInputFromExtractedImages();
     
 protected:
     bool m_doUsage;
+    bool m_doHeadless;
     bool m_doPlayInputSequence;
     bool m_doPlayInputAsHog;
     bool m_doExtractFrames;
@@ -72,10 +75,12 @@ protected:
     bool m_doTrainSvmFromFiles;
     bool m_doExtractSvmFromImages;
     bool m_doExtractMispredictedSvm;
+    bool m_doStopAfterMisprediction;
     bool m_doPredict;
     bool m_doPredictExtractedImages;
+    bool m_doAutomatedTraining;
     bool m_doMaxFps;
-    bool m_doYuv;
+    bool m_doYuv;                               // Transform the RGB channels to YUV
     bool m_doMonochrome;
     bool m_doRotateHog;
     bool m_doResizePersons;
@@ -83,18 +88,26 @@ protected:
     
     bool m_dumpAnnotationInfo;
     
+    bool m_useGPU;
+    bool m_useFPGA;
+    
     int m_minPersonHeight;
     int m_minPersonWidth;
     int m_zoom;
     int m_startInFrame;
     int m_doResizePersonsX;
     int m_doResizePersonsY;
+    int m_slidingWindowInc;
+    int m_multiscales;
+    double m_multiscaleIncFactor;
     double m_fps;
     std::string m_dataset;
     
+    const char* m_invocationPath;
     
 private:
     Downloader downloader;
+    MatfileReader annotationReader;
     HOGProcessor hogProcess;
     ImageExtractor extractor;
     SVMClassifier classifier;

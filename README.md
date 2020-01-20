@@ -55,7 +55,23 @@ and negative HOG features from random rectangular images from the source images.
 <pre>./pedestriandetectionbenchmark --train-svm-from-files</pre>
 Will create the SVM model from SVM files
 
-<pre>./pedestriandetectionbenchmark --predict --resize-persons-as 96 160</pre>
+<pre>./pedestriandetectionbenchmark --predict --mono --resize-persons-as 96 160</pre>
 Will use the SVM model to run the predictor while detecting pedestrians
 
 
+<pre>
+A manual way to do automated training is 
+
+./pedestriandetectionbenchmark --resize-persons-as 96 160 --mono --create-svm-from-extracted-images;
+./pedestriandetectionbenchmark --resize-persons-as 96 160 --mono --train-svm-from-files;
+./pedestriandetectionbenchmark --predict-extracted-images --mono --resize-persons-as 96 160 ;
+./pedestriandetectionbenchmark --predict --resize-persons-as 96 160 --mono --extract-mispredicted-svm --stop-after-misprediction --start-in-frame 0
+
+</pre>
+
+<pre>
+The automated way
+
+./pedestriandetectionbenchmark --resize-persons-as 96 160 --automated-training --mono
+
+</pre>

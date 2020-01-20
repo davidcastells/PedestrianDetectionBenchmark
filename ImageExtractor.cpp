@@ -305,12 +305,12 @@ void ImageExtractor::saveHogFeatureAsCsv(const char* filename, HOGFeature* featu
                 for (int y=0; y < feature->m_blockHeight; y++)
                     for (int x=0; x < feature->m_blockWidth; x++)
                     {
-                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+                        double* pBin = feature->getBin(bx, by, x, y, c);
 
                         fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
 
                         for (int i=0; i < 9; i++)
-                            fprintf(fp, "%d; ", pBin[i]);
+                            fprintf(fp, "%f; ", pBin[i]);
 
                         fprintf(fp, "\n");
                     }

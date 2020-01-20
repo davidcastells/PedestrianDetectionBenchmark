@@ -51,7 +51,7 @@ void ImageIO::scanNextPngStartMarker(FILE* m_fp)
     
     do
     {
-        fread(header, 1, 8, m_fp);
+        size_t read = fread(header, 1, 8, m_fp);
     
         if (png_sig_cmp((png_byte*)header, 0, 8))
         {

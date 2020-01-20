@@ -34,6 +34,7 @@
 XWindow::XWindow()
 {
     m_imageData = NULL;
+    m_window = 0;
 }
 
 XWindow::XWindow(const XWindow& orig)
@@ -119,6 +120,10 @@ void XWindow::drawRGBImage(Image* image )
 
 void XWindow::create(int width, int height, int bitDepth, int zoom)
 {
+    if (m_window != 0)
+        // the window is already created
+        return;
+    
     m_display = XOpenDisplay(0);
     m_zoom = zoom;
         

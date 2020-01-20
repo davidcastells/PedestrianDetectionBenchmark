@@ -307,13 +307,16 @@
         <linkerTool>
           <linkerAddLib>
             <pElem>/usr/lib/libsvm</pElem>
+            <pElem>/usr/local/cuda-10.1/targets/x86_64-linux/lib/</pElem>
           </linkerAddLib>
           <linkerLibItems>
             <linkerOptionItem>-lX11</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lpng</linkerOptionItem>
             <linkerOptionItem>-lsvm</linkerOptionItem>
+            <linkerOptionItem>-lOpenCL</linkerOptionItem>
           </linkerLibItems>
+          <commandLine>-fopenmp</commandLine>
         </linkerTool>
       </compileType>
       <item path="BoundingBox.cpp" ex="false" tool="1" flavor2="11">
@@ -397,8 +400,6 @@
       <item path="md/prerequisites.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="scoped_ptrs.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Ubuntu-Release" type="1">

@@ -160,7 +160,7 @@ void SVMClassifier::createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* s
                 for (int y=0; y < feature->m_blockHeight; y++)
                     for (int x=0; x < feature->m_blockWidth; x++)
                     {
-                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+                        double* pBin = feature->getBin(bx, by, x, y, c);
 
                         //fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
                         
@@ -348,12 +348,12 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
                 for (int y=0; y < feature->m_blockHeight; y++)
                     for (int x=0; x < feature->m_blockWidth; x++)
                     {
-                        unsigned int* pBin = feature->getBin(bx, by, x, y, c);
+                        double* pBin = feature->getBin(bx, by, x, y, c);
 
                         //fprintf(fp, "%d; %d; %d; %d; %d; ", c, bx, by, x, y);
 
                         for (int i=0; i < 9; i++)
-                            fprintf(fp, "%d:%d ", featureNum++, pBin[i]);
+                            fprintf(fp, "%d:%f ", featureNum++, pBin[i]);
 
                         
                     }

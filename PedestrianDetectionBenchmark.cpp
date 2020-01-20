@@ -284,6 +284,9 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
     double curW = refImage->m_width;
     double curH = refImage->m_height;
     double scaleFactor = 1;
+    
+    int resizeXInBlocks = 2 * ((m_doResizePersonsX / 8) / 2) - 1;
+    int resizeYInBlocks = 2 * ((m_doResizePersonsY / 8) / 2) - 1;
 
     for (int scaleIndex=0; scaleIndex < m_multiscales; scaleIndex++)
     {        
@@ -291,24 +294,42 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
 
         BufferedImage* image = new BufferedImage(curW, curH, refImage->m_channels);
         
-        printf("before resize\n");
         image->resizeFrom(refImage);
         
+        XWindow debugWindow;
         
-        for (int slideY=0; slideY < (image->m_height - m_doResizePersonsY); slideY+=m_slidingWindowInc)
-            for (int slideX=0; slideX < (image->m_width - m_doResizePersonsX); slideX+=m_slidingWindowInc)
+        debugWindow.create(curW, curH, 32, 1);
+        debugWindow.drawRGBImage(image);
+        
+        PerformanceLap tHog;
+        HOGFeature* wholeImageFeature = hogProcess.createFeature(image);
+        tHog.stop();
+        printf("HOG time: %f seconds\n", tHog.lap());
+        
+//        printf("nobx=%d\n", wholeImageFeature->getOverlappingBlocksInAxisX());
+//        printf("noby=%d\n", wholeImageFeature->getOverlappingBlocksInAxisY());
+        
+        for (int blocky=0; blocky < wholeImageFeature->getOverlappingBlocksInAxisY(); blocky++)
+            for (int blockx=0; blockx < wholeImageFeature->getOverlappingBlocksInAxisX(); blockx++)
             {
-                //printf("Testing %d %d %d %d\n", slideX, slideY);
+                int slideX = wholeImageFeature->getImageXFromCellIndexX(blockx, 0);
+                int slideY = wholeImageFeature->getImageYFromCellIndexY(blocky, 0);
+                
+                if (slideX >= (image->m_width - m_doResizePersonsX))
+                    continue;
+                if (slideY >= (image->m_height - m_doResizePersonsY))
+                    continue;
+                
+//                printf("Testing %d %d %d %d\n", slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
+                
                 BoundingBox box(slideX, slideY, m_doResizePersonsX, m_doResizePersonsY, false);
-                ReferenceSubImage subImage(image, &box);
-
-
-                HOGFeature* feature = hogProcess.createFeature(&subImage);
+                
+                
+                // HOGFeature* feature = hogProcess.createFeature(&subImage);
+                HOGFeature* feature = wholeImageFeature->createWindow(blockx, blocky, resizeXInBlocks, resizeYInBlocks);
 
                 double ret = classifier.predict(feature);
                 delete feature;
-
-
 
                 if (ret > 0.7)
                 {
@@ -339,6 +360,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                         {
                             // the box is identified as person, but does not colide with any annotation,
                             // add it as a negative sample
+                            ReferenceSubImage subImage(image, &box);
                             extractor.saveSvmTraining(&subImage, false);
                             extractedNegatives = true;
                             exit(0);
@@ -349,8 +371,10 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
             }
         
         scaleFactor *= m_multiscaleIncFactor;
-        curW *= m_multiscaleIncFactor;
-        curH *= m_multiscaleIncFactor;
+        int roundingX = hogProcess.m_cellWidth * hogProcess.m_blockWidth;
+        int roundingY = hogProcess.m_cellHeight * hogProcess.m_blockHeight;
+        curW = (int) ((refImage->m_width * scaleFactor + (roundingX-1)) / roundingX) * roundingX;
+        curH = (int) ((refImage->m_height * scaleFactor + (roundingY-1)) / roundingY) * roundingY;
         
         delete image;
     }
@@ -383,6 +407,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
 void PedestrianDetectionBenchmark::automatedTraining()
 {
     int n = annotationReader.getAnnotatedFrames();
+    int sysRet;
     
     std::string commonParam = "";
     
@@ -412,27 +437,27 @@ void PedestrianDetectionBenchmark::automatedTraining()
         std::string cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-        system(cmd.c_str());
+        sysRet = system(cmd.c_str());
 
         // Creates the SVM model from the input files
         param = " --train-svm-from-files";
         cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-        system(cmd.c_str());
+        sysRet = system(cmd.c_str());
         
         param = " --predict-extracted-images";
         cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-        system(cmd.c_str());
+        sysRet = system(cmd.c_str());
         
         
         param = " --predict --extract-mispredicted-svm --stop-after-misprediction --start-in-frame " + format("%d", i);
         cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-        system(cmd.c_str());
+        sysRet = system(cmd.c_str());
     }
 }
 

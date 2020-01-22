@@ -59,6 +59,7 @@ PerformanceLap::PerformanceLap()
 #endif
     
     start();
+    df = 0;
 }
 
 

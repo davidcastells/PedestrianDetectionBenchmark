@@ -128,6 +128,13 @@ std::vector<Image*> ImageExtractor::getNonPersons(std::vector<BoundingBox> boxes
     return ret;
 }
 
+/**
+ * 
+ * @param boxes
+ * @param minWidth
+ * @param minHeight
+ * @return 
+ */
 std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> boxes, int minWidth, int minHeight)
 {
     std::vector<Image*> ret;
@@ -149,6 +156,11 @@ std::vector<Image*> ImageExtractor::getPersonsHigher(std::vector<BoundingBox> bo
     return ret;
 }
 
+/**
+ * 
+ * @param persons
+ * @return 
+ */
 std::vector<Image*> ImageExtractor::resizePersons(std::vector<Image*> persons)
 {
     std::vector<Image*> ret;

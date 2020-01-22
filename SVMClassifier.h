@@ -37,7 +37,7 @@
 class SVMClassifier {
 public:
     SVMClassifier();
-    SVMClassifier(const SVMClassifier& orig);
+    
     virtual ~SVMClassifier();
 public:
     void setTrainingInputFile(std::string& inputFile);
@@ -51,11 +51,20 @@ public:
     void saveNonPersonHogSvms(std::vector<HOGFeature*> nonPersons);
     double predict(HOGFeature* feature);
     void appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature);
+    int getNumSupportVectors();
+    void configureFeatureDimension(int m_doResizePersonsX, int m_doResizePersonsY, int m_doMonochrome);
+    
+    // Copied from libsvm
+protected:
+    double my_svm_predict_values(const svm_model *model, double *x, double* dec_values);
+    double my_svm_predict_probability(const svm_model *model, double *x, double *prob_estimates);
+    double dotProduct(double* x);
     
 private:
     
     char* readLine(FILE *input);
-    void createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* svmVector);
+    void createSvmNodeFromHogFeature(HOGFeature* feature, svm_node* svmVector) __attribute__((deprecated));
+    void createArrayFromHogFeature(HOGFeature* feature, double* featureVector);
 
 private:
     struct svm_parameter param;		// set by parse_command_line
@@ -63,7 +72,12 @@ private:
     struct svm_node *x_space;
     struct svm_model *model;
     
-    svm_node* predict_x;
+//    double* m_svm_kvalue;
+    double* m_svm_w;
+    int m_svm_size;
+    
+    double* predict_x;
+    //svm_node* predict_x;
     int predict_x_size;
     
     char* line;

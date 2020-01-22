@@ -233,9 +233,9 @@ double SVMClassifier::my_svm_predict_values(const svm_model *model, double *x, d
 				dec_values[p] = sum;
 
 				if(dec_values[p] > 0)
-					++vote[i];
+                                    ++vote[i];
 				else
-					++vote[j];
+                                    ++vote[j];
 				p++;
 			}
 

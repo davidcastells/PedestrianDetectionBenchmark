@@ -179,7 +179,7 @@ int Image::interpolate(double x, double y, int color)
         for(int j=-1; j<3; j++)
         {
             // x,y
-            N[i][j] = get(ix+i, iy+j, color); //  pixels[(int)(offset + j*p + i*q*width)];
+            N[1+i][1+j] = get(ix+i, iy+j, color); //  pixels[(int)(offset + j*p + i*q*width)];
         }
     }
 

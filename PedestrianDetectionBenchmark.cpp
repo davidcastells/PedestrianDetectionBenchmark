@@ -96,8 +96,8 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doResizePersonsY = 128;
     m_fps = -1;
     m_slidingWindowInc = 16;
-    m_multiscaleIncFactor = 1.05;
-    m_multiscales = 10;
+    m_multiscaleIncFactor = 1.1; // 1.05;
+    m_multiscales = 15;
     m_useGPU = false;
     m_useFPGA = false;
     
@@ -296,10 +296,10 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
         
         image->resizeFrom(refImage);
         
-        XWindow debugWindow;
-        
-        debugWindow.create(curW, curH, 32, 1);
-        debugWindow.drawRGBImage(image);
+//        XWindow debugWindow;
+//        
+//        debugWindow.create(curW, curH, 32, 1);
+//        debugWindow.drawRGBImage(image);
         
         PerformanceLap tHog;
         HOGFeature* wholeImageFeature = hogProcess.createFeature(image);
@@ -336,7 +336,8 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
 
                 if (ret > 0.7)
                 {
-                    box.scaleDown(scaleFactor);
+                    BoundingBox scaledImageBox(box);
+                    box.scaleDown(scaleFactor);         // downsize to draw the box in the original image
                     
                     if (!m_doHeadless)
                     {
@@ -363,7 +364,9 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                         {
                             // the box is identified as person, but does not colide with any annotation,
                             // add it as a negative sample
-                            ReferenceSubImage subImage(image, &box);
+                            
+                            // we have to extract from the scaled image now
+                            ReferenceSubImage subImage(image, &scaledImageBox);
                             extractor.saveSvmTraining(&subImage, false);
                             extractedNegatives = true;
                             exit(0);

@@ -308,6 +308,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
         
 //        printf("nobx=%d\n", wholeImageFeature->getOverlappingBlocksInAxisX());
 //        printf("noby=%d\n", wholeImageFeature->getOverlappingBlocksInAxisY());
+        double tTotalPredict = 0;
         
         for (int blocky=0; blocky < wholeImageFeature->getOverlappingBlocksInAxisY(); blocky++)
             for (int blockx=0; blockx < wholeImageFeature->getOverlappingBlocksInAxisX(); blockx++)
@@ -328,7 +329,9 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                 // HOGFeature* feature = hogProcess.createFeature(&subImage);
                 HOGFeature* feature = wholeImageFeature->createWindow(blockx, blocky, resizeXInBlocks, resizeYInBlocks);
 
+                PerformanceLap tPredict;
                 double ret = classifier.predict(feature);
+                tTotalPredict += tPredict.lap();
                 delete feature;
 
                 if (ret > 0.7)
@@ -369,6 +372,9 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                     }
                 }
             }
+        
+        
+        printf("Predict time for %d SVs: %f\n", classifier.getNumSupportVectors(), tTotalPredict);
         
         scaleFactor *= m_multiscaleIncFactor;
         int roundingX = hogProcess.m_cellWidth * hogProcess.m_blockWidth;
@@ -536,6 +542,7 @@ void PedestrianDetectionBenchmark::run()
     {
         printf("[INFO] Loading SVM model\n");
         classifier.importModel();
+        classifier.configureFeatureDimension(m_doResizePersonsX, m_doResizePersonsY, m_doMonochrome);
     }
     
     if (m_doExtractHogSvm | m_doExtractSvmFromImages)

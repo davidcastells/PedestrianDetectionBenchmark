@@ -56,8 +56,8 @@ public:
     
     // Copied from libsvm
 protected:
-    double my_svm_predict_values(const svm_model *model, double *x, double* dec_values);
-    double my_svm_predict_probability(const svm_model *model, double *x, double *prob_estimates);
+    int my_svm_predict_values(const svm_model *model, double *x, double* dec_values);
+    int my_svm_predict_probability(const svm_model *model, double *x, double *prob_estimates);
     double dotProduct(double* x);
     
 private:

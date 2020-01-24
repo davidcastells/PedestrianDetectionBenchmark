@@ -181,7 +181,7 @@ double SVMClassifier::dotProduct(double* x)
     return sum;
 }
 
-double SVMClassifier::my_svm_predict_values(const svm_model *model, double *x, double* dec_values)
+int SVMClassifier::my_svm_predict_values(const svm_model *model, double *x, double* dec_values)
 {
 	int i;
 	assert(!(model->param.svm_type == ONE_CLASS ||
@@ -251,7 +251,7 @@ double SVMClassifier::my_svm_predict_values(const svm_model *model, double *x, d
 	
 }
 
-double SVMClassifier::my_svm_predict_probability(const svm_model *model, double  *x, double *prob_estimates)
+int SVMClassifier::my_svm_predict_probability(const svm_model *model, double  *x, double *prob_estimates)
 {
 	assert ((model->param.svm_type == C_SVC || model->param.svm_type == NU_SVC) &&
 	    model->probA!=NULL && model->probB!=NULL);
@@ -298,10 +298,10 @@ double SVMClassifier::my_svm_predict_probability(const svm_model *model, double 
 
 double SVMClassifier::predict(HOGFeature* feature)
 {
-    double ret;
+    int ret;
     double p[3] = {-1, -1};     // person , non-person
     
-/*
+
     if (predict_x == NULL)
     {
         predict_x_size = feature->getTotalBins();
@@ -315,15 +315,19 @@ double SVMClassifier::predict(HOGFeature* feature)
     }
     createArrayFromHogFeature(feature, predict_x);
     ret = my_svm_predict_probability(model, predict_x, p);
-    */
-
-
+    
+    //printf("predict ret=%d probability: %f %f\n", ret, p[0], p[1]);
+/*
     struct svm_node *x = new svm_node[feature->getTotalBins()+1];
 	createSvmNodeFromHogFeature(feature, x);
     ret = svm_predict_probability(model, x, p);
-    delete x;
+    delete x;*/
     
-    return p[0];
+    if (model->label[0] == 1)
+        return p[0];
+    else
+        return p[1];
+    //return p[0];
 }
 
 void SVMClassifier::createArrayFromHogFeature(HOGFeature* feature, double* featureVector)

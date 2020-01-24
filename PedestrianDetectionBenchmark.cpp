@@ -47,6 +47,7 @@
 #include <assert.h>
 
 #include <vector>
+#include <unistd.h>
 
 
 PedestrianDetectionBenchmark::PedestrianDetectionBenchmark()
@@ -82,6 +83,7 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_doDrawCenteredBoxes = false;
     m_doAutomatedTraining = false;
     m_dumpAnnotationInfo = false;
+    m_doShowPositiveSamples = false;
     
     m_doYuv = false;
     m_doMonochrome = false;
@@ -198,6 +200,10 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
         {
             m_useFPGA = true;
         }
+        else if (strcmp(args[i], "--show-positive-samples") == 0)
+        {
+            m_doShowPositiveSamples = true;
+        }
         else
         {
             printf("[WARNING] Unrecognized option= %s\n", args[i]);
@@ -235,6 +241,42 @@ void PedestrianDetectionBenchmark::validateOptions()
     }
 }
 
+void PedestrianDetectionBenchmark::showPositiveSamples()
+{
+    printf("[INFO] Displaying positive SVM samples (with 1 second delay)\n");
+
+    File dir(extractor.m_extractionPath);
+
+    std::vector<File> files = dir.listFiles();
+
+    XWindow window;
+    window.create(m_doResizePersonsX, m_doResizePersonsY, 24, 2);
+        
+    for (int i=0; i < files.size(); i++)
+    {
+        std::string path = files.at(i).getPath();
+        
+//        printf("File %d = %s\n", i, files.at(i).getPath().c_str());
+
+        bool isNeg = path.find("svm_neg") != std::string::npos;
+        bool isPos = path.find("svm_pos") != std::string::npos;
+
+        
+        
+        if (isPos)
+        {
+            Image* image = ImageIO::loadImage(path.c_str(), (m_doMonochrome)? 1 : 3);
+            
+            window.drawRGBImage(image);
+            window.flush();
+            
+            sleep(1);
+            
+            delete image;
+        }
+    }    
+}
+
 void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
 {
     printf("[INFO] Creating SVM input file from extracted images\n");
@@ -243,21 +285,31 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
 
     std::vector<File> files = dir.listFiles();
 
-    for (int i=0; i < files.size(); i++)
+    int s = files.size();
+    
+    for (int i=0; i < s; i++)
     {
         std::string path = files.at(i).getPath();
-        //printf("File %d = %s\n", i, files.at(i).getPath().c_str());
+        
+        printf("File %d/%d = %s\n", i, s, files.at(i).getPath().c_str());
 
         bool isNeg = path.find("svm_neg") != std::string::npos;
         bool isPos = path.find("svm_pos") != std::string::npos;
 
         if (isNeg | isPos)
         {
+            //printf("0)preparing\n");
             Image* image = ImageIO::loadImage(path.c_str(), (m_doMonochrome)? 1 : 3);
+            //printf("1)loaded\n");
             HOGFeature* feature = hogProcess.createFeature(image);
+
+            //printf("2)HOG\n");
+            printf("Append %s with %d features\n", (isPos)? "POS":"NEG", feature->getTotalBins());
 
             classifier.appendHogFeatureToSvmFile(isPos, feature);
 
+            //printf("3)saved\n");
+            
             delete feature;
             delete image;
         }
@@ -369,7 +421,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                             ReferenceSubImage subImage(image, &scaledImageBox);
                             extractor.saveSvmTraining(&subImage, false);
                             extractedNegatives = true;
-                            exit(0);
+                            //exit(0);
                             
                         }
                     }
@@ -529,6 +581,11 @@ void PedestrianDetectionBenchmark::run()
     classifier.setModelFile(svmModel);
     
     
+    if (m_doShowPositiveSamples)
+    {
+        showPositiveSamples();
+        exit(0);
+    }
     
     if (m_doTrainSvmFromFiles)
     {
@@ -545,7 +602,7 @@ void PedestrianDetectionBenchmark::run()
     {
         printf("[INFO] Loading SVM model\n");
         classifier.importModel();
-        classifier.configureFeatureDimension(m_doResizePersonsX, m_doResizePersonsY, m_doMonochrome);
+        // classifier.configureFeatureDimension(m_doResizePersonsX, m_doResizePersonsY, m_doMonochrome);
     }
     
     if (m_doExtractHogSvm | m_doExtractSvmFromImages)
@@ -566,6 +623,9 @@ void PedestrianDetectionBenchmark::run()
 
         std::vector<File> files = dir.listFiles();
 
+        XWindow debugWindow;
+        debugWindow.create(m_doResizePersonsX, m_doResizePersonsY, 24, 2);
+        
         for (int i=0; i < files.size(); i++)
         {
             std::string path = files.at(i).getPath();
@@ -577,6 +637,10 @@ void PedestrianDetectionBenchmark::run()
             if (isNeg | isPos)
             {
                 Image* image = ImageIO::loadImage(path.c_str(), (m_doMonochrome)? 1 : 3);
+                
+                debugWindow.drawRGBImage(image);
+                debugWindow.flush();
+                
                 HOGFeature* feature = hogProcess.createFeature(image);
 
                 double v = classifier.predict(feature);
@@ -586,6 +650,7 @@ void PedestrianDetectionBenchmark::run()
                 bool isOk = (isNeg && v < 0.5) || (isPos && v > 0.5);
 
                 printf(isOk? "[OK]":"##### error #####");
+		printf(" features: %d", feature->getTotalBins());
 
                 printf("\n");
                 delete feature;
@@ -780,7 +845,7 @@ void PedestrianDetectionBenchmark::run()
                         if (m_doExtractImagesSvm)
                         {
                             extractor.saveSvmTraining(inputPersons, true);
-                            //extractor.saveSvmTraining(nonPersons, false);
+                            extractor.saveSvmTraining(nonPersons, false);
                         }
                         if (m_doExtractHogSvm)
                         {                        
@@ -911,8 +976,9 @@ void PedestrianDetectionBenchmark::usage()
     printf("--dump-annotation-info\n");
     printf("\tDump information about the annotation\n");
     printf("\n");
-    
-    
-    
+    printf("--show-positive-samples");
+    printf("\tDisplay the positive samples considered by the system\n");
+    printf("\n");
+
 }
 

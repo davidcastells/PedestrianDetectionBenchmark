@@ -124,7 +124,7 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
     
     for (int colorChannel = 0; colorChannel < image->m_channels; colorChannel++)
     {
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int ycell=0; ycell < numCellsY; ycell++)
             for (int xcell = 0; xcell < numCellsX; xcell++)
             {

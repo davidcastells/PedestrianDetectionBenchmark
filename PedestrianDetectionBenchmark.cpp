@@ -602,7 +602,7 @@ void PedestrianDetectionBenchmark::run()
     {
         printf("[INFO] Loading SVM model\n");
         classifier.importModel();
-        // classifier.configureFeatureDimension(m_doResizePersonsX, m_doResizePersonsY, m_doMonochrome);
+        classifier.configureFeatureDimension(m_doResizePersonsX, m_doResizePersonsY, m_doMonochrome);
     }
     
     if (m_doExtractHogSvm | m_doExtractSvmFromImages)

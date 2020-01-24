@@ -109,16 +109,16 @@ int Image::getR(int x, int y)
 
 int Image::getG(int x, int y)
 {
-    if (m_channels == 1)
-        return getR(x, y);
+//    if (m_channels == 1)
+//        return getR(x, y);
     
     return m_buffer[(y*m_stride+x)*3+1];
 }
 
 int Image::getB(int x, int y)
 {
-    if (m_channels == 1)
-        return getR(x, y);
+//    if (m_channels == 1)
+//        return getR(x, y);
     
     return m_buffer[(y*m_stride+x)*3+2];
 }

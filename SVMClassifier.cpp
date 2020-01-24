@@ -300,8 +300,8 @@ double SVMClassifier::predict(HOGFeature* feature)
 {
     double ret;
     double p[3] = {-1, -1};     // person , non-person
-    //struct svm_node *x = createSvmNodeFromHogFeature(feature);
     
+/*
     if (predict_x == NULL)
     {
         predict_x_size = feature->getTotalBins();
@@ -313,17 +313,16 @@ double SVMClassifier::predict(HOGFeature* feature)
         predict_x_size = feature->getTotalBins();
         predict_x = new double[predict_x_size];
     }
-    
-    //int sx = sizeof(svm_node) * predict_x_size;
-    
-    
-    //memset(x, 0, sx);
     createArrayFromHogFeature(feature, predict_x);
-    
-    //ret = svm_predict(model, x);
     ret = my_svm_predict_probability(model, predict_x, p);
+    */
+
+
+    struct svm_node *x = new svm_node[feature->getTotalBins()+1];
+	createSvmNodeFromHogFeature(feature, x);
+    ret = svm_predict_probability(model, x, p);
+    delete x;
     
-    //free(x);
     return p[0];
 }
 
@@ -605,15 +604,19 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
     
     FILE* fp = fopen(filename, "a+");
     
-    fprintf(fp, (isPerson)? "1 " : "-1 ");  // This is the label (1) means positive sample(person) , (0) means negative (non-person)
+    fprintf(fp, (isPerson)? "+1 " : "-1 ");  // This is the label (1) means positive sample(person) , (0) means negative (non-person)
     
     if (isPerson)
         m_positiveSample++;
     else
         m_negativeSample++;
     
-    int featureNum = 1;
+    //int len = feature->getTotalBins();
+    //double featureVector[len];	    
+    //createArrayFromHogFeature(feature, featureVector);
     
+    int featureNum = 1;
+
     for (int c=0; c < feature->m_colorChannels; c++)
         for (int by = 0; by < feature->m_numBlocksY; by++)
             for (int bx = 0; bx < feature->m_numBlocksX; bx++)
@@ -629,7 +632,12 @@ void SVMClassifier::appendHogFeatureToSvmFile(bool isPerson, HOGFeature* feature
 
                         
                     }
+//    for (int i=0; i < len; i++)
+//	fprintf(fp, "%d:%f ", i+1, featureVector[i]);
     
+ //   struct svm_node [feature->getTotalBins()+1];
+ //   createSvmNodeFromHogFeature(feature, x);
+
     fprintf(fp, "\n");
     
     fclose(fp);

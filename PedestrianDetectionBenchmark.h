@@ -60,6 +60,7 @@ public:
     
     void slidingWindowPrediction(Image* image, std::vector<BoundingBox>& annotatedBoxes);
     void generateSvmInputFromExtractedImages();
+    void showPositiveSamples();
     
 protected:
     bool m_doUsage;
@@ -85,7 +86,7 @@ protected:
     bool m_doRotateHog;
     bool m_doResizePersons;
     bool m_doDrawCenteredBoxes;
-    
+    bool m_doShowPositiveSamples;               // display positive samples
     bool m_dumpAnnotationInfo;
     
     bool m_useGPU;

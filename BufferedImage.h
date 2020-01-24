@@ -29,7 +29,10 @@
 #include "Image.h"
 
 /**
- * 
+ *  Buffered Images are always created with 3 channels, whatever the user
+ *  specifies
+ *  However the number of channels is stored so we can know if it is monochrome
+ *  or color
  */
 class BufferedImage : public Image
 {

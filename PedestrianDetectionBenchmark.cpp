@@ -287,11 +287,13 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
 
     int s = files.size();
     
+    printf("\n");
+    
     for (int i=0; i < s; i++)
     {
         std::string path = files.at(i).getPath();
         
-        printf("File %d/%d = %s\n", i, s, files.at(i).getPath().c_str());
+        printf("\rFile %d/%d = %s  ", i, s, files.at(i).getPath().c_str());
 
         bool isNeg = path.find("svm_neg") != std::string::npos;
         bool isPos = path.find("svm_pos") != std::string::npos;
@@ -304,7 +306,7 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
             HOGFeature* feature = hogProcess.createFeature(image);
 
             //printf("2)HOG\n");
-            printf("Append %s with %d features\n", (isPos)? "POS":"NEG", feature->getTotalBins());
+//            printf("Append %s with %d features\n", (isPos)? "POS":"NEG", feature->getTotalBins());
 
             classifier.appendHogFeatureToSvmFile(isPos, feature);
 
@@ -314,6 +316,8 @@ void PedestrianDetectionBenchmark::generateSvmInputFromExtractedImages()
             delete image;
         }
     }    
+    
+    printf("\n");
 }
 
 /**
@@ -507,14 +511,15 @@ void PedestrianDetectionBenchmark::automatedTraining()
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
         sysRet = system(cmd.c_str());
         
-        param = " --predict-extracted-images";
-        cmd = exe + commonParam + param;
+//        param = " --predict-extracted-images";
+//        cmd = exe + commonParam + param;
+//        
+//        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
+//        sysRet = system(cmd.c_str());
         
-        printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());
-        sysRet = system(cmd.c_str());
         
-        
-        param = " --predict --extract-mispredicted-svm --stop-after-misprediction --start-in-frame " + format("%d", i);
+        //param = " --predict --extract-mispredicted-svm --stop-after-misprediction --start-in-frame " + format("%d", i);
+        param = " --predict --extract-mispredicted-svm --start-in-frame " + format("%d", i);
         cmd = exe + commonParam + param;
         
         printf("[AUTOMATED-TRAINING] executing: %s\n", cmd.c_str());

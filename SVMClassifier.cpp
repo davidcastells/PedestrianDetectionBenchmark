@@ -440,12 +440,14 @@ void SVMClassifier::configureFeatureDimension(int m_doResizePersonsX, int m_doRe
     
     int percent = 0;
     
+    printf("\n");
+    
     for (int i = 0; i < totalBins; i++)
     {
         if (((i * 100) / totalBins) != percent)
         {
             percent = (i * 100) / totalBins;
-            printf("Precomputing coefficient for feature bin %d%%\n", percent);
+            printf("\rPrecomputing coefficient for feature bin %d%%   ", percent);
         }
         
         m_svm_w[i] = 0;
@@ -458,6 +460,8 @@ void SVMClassifier::configureFeatureDimension(int m_doResizePersonsX, int m_doRe
         
         
     }
+    
+    printf("\n");
 }
 
 

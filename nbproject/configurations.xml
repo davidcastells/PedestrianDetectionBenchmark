@@ -430,7 +430,7 @@
         </asmTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/usr/local/cuda-10.1/targets/x86_64-linux/lib/</pElem>
+            <pElem>/usr/local/cuda/targets/x86_64-linux/lib/</pElem>
           </linkerAddLib>
           <linkerLibItems>
             <linkerOptionItem>-lX11</linkerOptionItem>

@@ -103,6 +103,10 @@ protected:
     double m_multiscaleIncFactor;
     double m_fps;
     std::string m_dataset;
+    int m_extractedNegativesCount;
+    
+    int m_allowedFalsePositivesPerFrame;
+    int m_maxFalsePositivesExtractedPerFrame;
     
     const char* m_invocationPath;
     

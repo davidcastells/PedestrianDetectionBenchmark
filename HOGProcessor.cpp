@@ -31,6 +31,7 @@
 
 #include <math.h>
 #include <vector>
+#include <assert.h>
 
 HOGProcessor::HOGProcessor()
 {
@@ -38,6 +39,7 @@ HOGProcessor::HOGProcessor()
     m_cellHeight = 8;
     m_blockWidth = 2;
     m_blockHeight = 2;
+
 }
 
 /**
@@ -54,12 +56,14 @@ HOGProcessor::HOGProcessor(int cellWidth, int cellHeight, int blockWidth, int bl
     m_cellHeight = cellHeight;
     m_blockWidth = blockWidth;
     m_blockHeight = blockHeight;
+    
 }
 
 
 
 HOGProcessor::~HOGProcessor()
 {
+    
 }
 
 /**
@@ -102,6 +106,60 @@ std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> ima
     return ret;
 }
 
+HOGFeature* HOGProcessor::createFeature(Image* image)
+{
+    HOGFeature* ret = allocateMemFeature(image);
+    HOGFeature* preNorm = allocateMemFeature(image);
+    double* mag = allocateMemGradient(image);
+    double* orient = allocateMemGradient(image);
+    
+    computeGradient(image,  mag, orient);
+    computeHistogram(image, mag, orient, preNorm);
+    computeNorm(image, preNorm, ret);
+    
+    delete mag;
+    delete orient;
+    delete preNorm;
+    
+    return ret;
+}
+
+
+
+/**
+ * Preallocates the memory for the intermediate memories, which depend on the image size
+ * @param image
+ */
+HOGFeature* HOGProcessor::allocateMemFeature(Image* image)
+{
+    int numCellsX = image->m_width / m_cellWidth;
+    int numCellsY = image->m_height / m_cellHeight;
+
+    int blocksInXAxis = numCellsX / m_blockWidth;  // how many blocks fit in image width
+    int blocksInYAxis = numCellsY / m_blockHeight; // how many blocks fit in image height
+    
+    int numBlocksX = blocksInXAxis * 2 - 1;
+    int numBlocksY = blocksInYAxis * 2 - 1;
+    
+    assert(numBlocksX > 2);
+    assert(numBlocksY > 2);
+    
+//    m_numCellsX = (imageWidth / cellWidth) * 2 -1;
+//    m_numCellsY = (imageHeight / cellHeight) * 2 -1;
+        
+    
+    return new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, image->m_channels);
+}
+
+
+double* HOGProcessor::allocateMemGradient(Image* image)
+{
+    
+    int numCellsX = image->m_width / m_cellWidth;
+    int numCellsY = image->m_height / m_cellHeight;
+    return new double[image->m_channels*image->m_width*image->m_height];
+}
+
 /**
  * Create a HOG feature from an Image.
  * This is used to create the HOG feature from the training images,
@@ -112,42 +170,177 @@ std::vector<HOGFeature*> HOGProcessor::createHogFeatures(std::vector<Image*> ima
  * @return 
  * 
  */
-HOGFeature* HOGProcessor::createFeature(Image* image)
+void HOGProcessor::computeGradient(Image* image, double* pGradientMag, double* pGradientOrient)
 {
-    HOGFeature* feature = new HOGFeature(image->m_width, image->m_height, m_cellWidth, m_cellHeight, m_blockWidth, m_blockHeight, image->m_channels);
+    double pi = M_PI;
+    
+//    printf("grad\n");
     
     // compute gradient and bins for all the image, here we do not need to work with blocks
     int numCellsX = image->m_width / m_cellWidth;
     int numCellsY = image->m_height / m_cellHeight;
         
-    double rawBins[image->m_channels][numCellsX][numCellsY][9];
+    //double rawBins[image->m_channels][numCellsX][numCellsY][9];
     
     for (int colorChannel = 0; colorChannel < image->m_channels; colorChannel++)
     {
         //#pragma omp parallel for
-        for (int ycell=0; ycell < numCellsY; ycell++)
-            for (int xcell = 0; xcell < numCellsX; xcell++)
+        for (int fy=0; fy < image->m_height ; fy++)
+            for (int fx = 0; fx < image->m_width; fx++)
             {
-                double mag[8*8];
-                double angle[8*8];
-                
-                computeGradient(image, feature, xcell, ycell, colorChannel, mag, angle);
-                
-                double* pBin = &rawBins[colorChannel][xcell][ycell][0];
+                // consider corner cases
+                int fx_m1 = (fx > 0)? (fx-1) : fx;
+                int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
+                int fy_m1 = (fy > 0)? (fy-1) : fy;
+                int fy_p1 = (fy < (image->m_height-1))? (fy+1) : fy;
 
-                for (int bin = 0; bin < 9; bin++)
-                    pBin[bin] = 0;
+                int gradientx = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
+                int gradienty = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);
+
+                double mag = sqrt((gradientx * gradientx) + (gradienty * gradienty));
+                double orientation = atan2(gradienty, gradientx);
+
+//            if (mag == 0)
+//                // avoid wasting time for mag = 0
+//                continue;
                 
-                computeHistogram(mag, angle, pBin);
+                // save orientation in the 0 - pi range
+                if (orientation < 0)
+                    orientation = pi + orientation;
+                if (orientation > pi)
+                    orientation = orientation - pi;
+                
+                assert(orientation >= 0 && orientation <= M_PI);
+
+                pGradientMag[colorChannel*image->m_height*image->m_width+fy*image->m_width+fx] = mag;
+                pGradientOrient[colorChannel*image->m_height*image->m_width+fy*image->m_width+fx] = orientation;                
             }
     }
+    
+}
+
+
+void HOGProcessor::computeHistogram(Image* image, double* pGradientMag, double* pGradientOrient, HOGFeature* preNorm)
+{
+//    printf("his\n");
+    
+    // compute gradient and bins for all the image, here we do not need to work with blocks
+    int numCellsX = image->m_width / m_cellWidth;
+    int numCellsY = image->m_height / m_cellHeight;
+        
+    //double rawBins[image->m_channels][numCellsX][numCellsY][9];
+    
+    for (int colorChannel =0 ; colorChannel < preNorm->m_colorChannels; colorChannel++)
+        for (int yblock=0; yblock < preNorm->getOverlappingBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < preNorm->getOverlappingBlocksInAxisX(); xblock++)
+            {
+                // bsx,bsy are image coordinates 
+                int bsx = preNorm->getImageXFromCellIndexX(xblock, 0);
+                int bsy = preNorm->getImageXFromCellIndexX(yblock, 0);
+
+                for (int ycell=0; ycell < preNorm->m_blockHeight; ycell++)
+                    for (int xcell = 0; xcell < preNorm->m_blockWidth; xcell++)
+                    {    
+                        double* pDstBin = preNorm->getBin(xblock, yblock, xcell, ycell, colorChannel);
+                        
+                        for (int ycellsrc=0; ycellsrc < preNorm->m_blockHeight; ycellsrc++)
+                            for (int xcellsrc = 0; xcellsrc < preNorm->m_blockWidth; xcellsrc++)
+                            {
+                                for (int cy = 0; cy < preNorm->m_cellHeight; cy++)
+                                    for (int cx = 0; cx < preNorm->m_cellWidth; cx++)
+                                    {
+                                        // fx,fy are image coordinates 
+                                        int fx = preNorm->getImageXFromCellIndexX(xblock, xcellsrc) + cx;
+                                        int fy = preNorm->getImageXFromCellIndexX(yblock, ycellsrc) + cy;
+                                        
+                                        // x,y coordinates relative to start of the block
+                                        int relbsx = fx-bsx;    
+                                        int relbsy = fy-bsy;
+                                        
+                                        double gMag = pGradientMag[colorChannel*image->m_width*image->m_height+fy*image->m_width+fx];
+                                        double gOri = pGradientOrient[colorChannel*image->m_width*image->m_height+fy*image->m_width+fx];
+                                        
+                                        // la fx fy està malament
+                                        double cellW = cellInterpolation(xcell*m_cellWidth+3.5, ycell*m_cellHeight+3.5, relbsx, relbsy);
+                                        double cellG = cellGaussian(relbsx, relbsy);
+                                        
+                                        int bin0, bin1;
+                                        double mag0, mag1;
+                                        
+                                        interpolateBins(gMag, gOri, &bin0, &bin1, &mag0, &mag1);
+                                        
+                                        pDstBin[bin0] += mag0; // * cellW * cellG;
+                                        pDstBin[bin1] += mag1; //  * cellW * cellG;
+                                    }
+                            }
+                    }
+            }
+    
+}
+
+double HOGProcessor::cellInterpolation(double centerx, double centery, double x, double y)
+{
+    double d = sqrt(pow(centerx-x, 2)+pow(centery-y,2));
+    assert(d > 0.1);
+    return 1/d;
+}
+                 
+double HOGProcessor::cellGaussian(double x, double y)
+{
+    double k = 1/(2*M_PI*8*8);
+    double q = pow(x-7.5, 2) + pow(y-7.5, 2);
+    return k * exp(-q*k);
+}
+
+
+void HOGProcessor::interpolateBins(double gMag, double gOri, int* bin0, int* bin1, double* mag0, double* mag1)
+{
+    double pi18 = M_PI / 18;
+    double pi9 = M_PI / 9;
+    
+    // this is already checked when storing the orientation
+//    if (gOri < 0)
+//        gOri = M_PI - gOri;
+    
+    // Ensure that the orientation is in the 0 - pi range
+    assert(gOri >= 0 && gOri <= M_PI);
+    
+    *bin0 = (M_PI + gOri - pi18) / pi9;
+    *bin0 = *bin0 % 9;
+    *bin1 = (*bin0 + 1) % 9; 
+    
+    double bc0 = (*bin0) * pi9 + pi18;
+    //double bc1 = (*bin1) * pi9 + pi18;
+    
+    
+    double dbc0 = (gOri <= bc0)? M_PI + gOri - bc0 : gOri - bc0;
+    
+    double w0 = dbc0 / pi9; //  : bc0 + M_PI - gOri;
+    double w1 = 1 - w0;
+    
+    *mag0 = gMag * w0;
+    *mag1 = gMag * w1;
+}
+
+/**
+ * 
+ * @param image
+ * @param feature
+ */
+void HOGProcessor::computeNorm(Image* image, HOGFeature* preNorm, HOGFeature* feature)
+{
+    // compute gradient and bins for all the image, here we do not need to work with blocks
+    int numCellsX = image->m_width / m_cellWidth;
+    int numCellsY = image->m_height / m_cellHeight;
+        
+//    printf("norm\n");
     
     // Now compute bin normalization
     for (int colorChannel = 0; colorChannel < image->m_channels; colorChannel++)
     {
-        #pragma omp parallel for
-        for (int yblock=0; yblock < feature->m_numBlocksY; yblock++)
-            for (int xblock=0; xblock < feature->m_numBlocksX; xblock++)
+        //#pragma omp parallel for
+        for (int yblock=0; yblock < feature->getOverlappingBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getOverlappingBlocksInAxisX(); xblock++)
             {
                 // Normalize Using L1-Sqrt
                 double L1_norm = 1;
@@ -155,13 +348,15 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
                     for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
                     {
-                        int cellx = xblock + xcell;
-                        int celly = yblock + ycell;
-                            
+//                        int cellx = xblock + xcell;
+//                        int celly = yblock + ycell;
+
+                        double* pSrcBin = preNorm->getBin(xblock, yblock, xcell, ycell, colorChannel);
+
                         for (int bin=0; bin < 9; bin++)
                         {
                             
-                            L1_norm += rawBins[colorChannel][cellx][celly][bin];
+                            L1_norm += pSrcBin[bin];
                         }
                     }
                 
@@ -170,14 +365,15 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
                     for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
                     {
-                        int cellx = xblock + xcell;
-                        int celly = yblock + ycell;
+//                        int cellx = xblock + xcell;
+//                        int celly = yblock + ycell;
                             
+                        double* pSrcBin = preNorm->getBin(xblock, yblock, xcell, ycell, colorChannel);
                         double* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
                         
                         for (int bin=0; bin < 9; bin++)
                         {
-                            pBin[bin] = rawBins[colorChannel][cellx][celly][bin] / L1_sqrt;
+                            pBin[bin] = pSrcBin[bin] / L1_sqrt;
                         }
                     }
             }
@@ -185,239 +381,11 @@ HOGFeature* HOGProcessor::createFeature(Image* image)
     
     feature->m_objId = image->m_objId;    // copy the object ID for correct naming
     
-    return feature;
 }
 
 
-/**
- * @todo fix the border cases (they should contribute to the other extreme)
- * @param pBin
- * @deprecated use the double parameters version
- */
-void HOGProcessor::computeHistogram(short* gradientx, short* gradienty, unsigned int* pBin)
-{
-    double pi = 3.14159265359;
-    double pi18 = pi / 18.0;
-
-    // Now compute magnitude and orientation (rectangular to polar coordinates)
-    for (int y=0; y < 8; y++)
-        for (int x=0; x < 8; x++)
-        {
-            double mag = sqrt((gradientx[x+y*8] * gradientx[x+y*8]) + (gradienty[x+y*8] * gradienty[x+y*8]));
-            double orientation = atan2(gradienty[x+y*8], gradientx[x+y*8]);
-
-            if (mag == 0)
-                    // avoid wasting time for mag = 0
-                    continue;
-
-            if (orientation < 0)
-                    orientation = pi - orientation;
-            if (orientation > pi)
-                    orientation = orientation - pi;
-
-            //printf("mag: %d ori: %f\n", mag, orientation);
-
-            // now select the bins where we should aggregate the values
 
 
-            int bin0 = -1;	// -1 means no bin is used
-            int bin1 = -1;	// 
-
-            bin0 = (orientation - pi18) / (2*pi18);		// bin0 will automanically be negative for orientation < pi18
-            bin1 = bin0 + 1;
-
-
-
-            if (orientation < pi18)
-            {
-                    bin0 = -1;
-                    bin1 = 0;
-            }
-
-            double bin0center = (bin0 * (2*pi18)) + pi18;
-            double bin1center = (bin1 * (2*pi18)) + pi18;
-
-            //printf("bin0 center: %f bin1 center: %f\n", bin0center, bin1center);
-
-            if (bin1 > 8)
-                bin1 = -1;
-
-            // weight 0 is computed as the factor of the distance from bin1 center with the bin width
-            double w0 = (bin1center - orientation) / (2*pi18);
-            // weight 1 is computed as the factor of the distance from bin0 center with the bin width
-            double w1 = (orientation - bin0center) / (2*pi18);
-
-            //if (bin0 >= 0)
-                    //printf("bin0. bin[%d] = %d * %f = %d\n", bin0, mag, w0, (int)(mag*w0));
-            //if (bin1 >= 0)
-                    //printf("bin1. bin[%d] = %d * %f = %d\n", bin1, mag, w1, (int)(mag*w1));
-
-            // Finally add the computed values if bins are valid
-            if (bin0 >= 0)
-                    pBin[bin0] += mag * w0;
-            if (bin1 >= 0)
-                    pBin[bin1] += mag * w1;
-        }    
-}
-
-/**
- * 
- * @param magIn
- * @param orientationIn
- * @param pBin
- */
-void HOGProcessor::computeHistogram(double* magIn, double* orientationIn, double* pBin)
-{
-    const double pi = 3.14159265359;
-    const double pi18 = pi / 18.0;
-
-    // Now compute magnitude and orientation (rectangular to polar coordinates)
-    for (int y=0; y < 8; y++)
-        for (int x=0; x < 8; x++)
-        {
-            double mag = magIn[x+y*8];
-            double orientation = orientationIn[x+y*8];
-
-            if (mag == 0)
-                // avoid wasting time for mag = 0
-                continue;
-
-            if (orientation < 0)
-                orientation = pi - orientation;
-            if (orientation > pi)
-                orientation = orientation - pi;
-
-            //printf("mag: %d ori: %f\n", mag, orientation);
-
-            // now select the bins where we should aggregate the values
-
-
-            int bin0 = -1;	// -1 means no bin is used
-            int bin1 = -1;	// 
-
-            bin0 = (orientation - pi18) / (2*pi18);		// bin0 will automanically be negative for orientation < pi18
-            bin1 = bin0 + 1;
-
-            if (orientation < pi18)
-            {
-                bin0 = -1;
-                bin1 = 0;
-            }
-
-            double bin0center = (bin0 * (2*pi18)) + pi18;
-            double bin1center = (bin1 * (2*pi18)) + pi18;
-
-            //printf("bin0 center: %f bin1 center: %f\n", bin0center, bin1center);
-
-            if (bin1 > 8)
-                bin1 = -1;
-
-            // weight 0 is computed as the factor of the distance from bin1 center with the bin width
-            double w0 = (bin1center - orientation) / (2*pi18);
-            // weight 1 is computed as the factor of the distance from bin0 center with the bin width
-            double w1 = (orientation - bin0center) / (2*pi18);
-
-            //if (bin0 >= 0)
-                    //printf("bin0. bin[%d] = %d * %f = %d\n", bin0, mag, w0, (int)(mag*w0));
-            //if (bin1 >= 0)
-                    //printf("bin1. bin[%d] = %d * %f = %d\n", bin1, mag, w1, (int)(mag*w1));
-
-            // Finally add the computed values if bins are valid
-            if (bin0 >= 0)
-                pBin[bin0] += mag * w0;
-            if (bin1 >= 0)
-                pBin[bin1] += mag * w1;
-        }    
-}
-
-
-/**
- * Compute gradient with block addressing
- * @param image
- * @param feature
- * @param xcell
- * @param ycell
- * @param colorChannel
- * 
- * @deprecated, no longer computed in block addressing, use cell addressing variant
- */
-
-void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientx, short* gradienty)
-{
-    // compute the gradients 
-    // [-1, 0, 1] for horizontal and vertical gradients
-    for (int y=0; y < 8; y++)
-        for (int x=0; x < 8; x++)
-        {
-            // get the image cordinates of the cell
-            int fx = feature->getImageXFromCellIndexX(xblock, xcell) + x;
-            int fy = feature->getImageYFromCellIndexY(yblock, ycell) + y;
-
-            // consider corner cases
-            int fx_m1 = (fx > 0)? (fx-1) : fx;
-            int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
-            int fy_m1 = (fy > 0)? (fy-1) : fy;
-            int fy_p1 = (fy < (image->m_height-1))? (fy+1) : fy;
-
-            gradientx[x+y*8] = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
-            gradienty[x+y*8] = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);
-        }
-    
-}
-
-/**
- * Compute gradient with cell addressing
- * @param image
- * @param feature
- * @param xcell
- * @param ycell
- * @param colorChannel
- * @param mag
- * @param angle
- */
-void HOGProcessor::computeGradient(Image* image, HOGFeature* feature, 
-        int xcell, int ycell, int colorChannel, double* magOut, double* orientationOut)
-{
-    const double pi = 3.14159265359;
-    const double pi18 = pi / 18.0;
-    
-    // compute the gradients 
-    // [-1, 0, 1] for horizontal and vertical gradients
-    for (int y=0; y < 8; y++)
-        for (int x=0; x < 8; x++)
-        {
-            // get the image cordinates of the cell, ignore block addressing
-            int fx = feature->getImageXFromCellIndexX(0, xcell) + x;
-            int fy = feature->getImageYFromCellIndexY(0, ycell) + y;
-
-            // consider corner cases
-            int fx_m1 = (fx > 0)? (fx-1) : fx;
-            int fx_p1 = (fx < (image->m_width-1))? (fx+1) : fx;
-            int fy_m1 = (fy > 0)? (fy-1) : fy;
-            int fy_p1 = (fy < (image->m_height-1))? (fy+1) : fy;
-
-            int gradientx = -image->get(fx_m1, fy, colorChannel) + image->get(fx_p1, fy, colorChannel);
-            int gradienty = -image->get(fx, fy_m1, colorChannel) + image->get(fx, fy_p1, colorChannel);
-            
-            double mag = sqrt((gradientx * gradientx) + (gradienty * gradienty));
-            double orientation = atan2(gradienty, gradientx);
-
-            if (mag == 0)
-                // avoid wasting time for mag = 0
-                continue;
-
-            if (orientation < 0)
-                orientation = pi - orientation;
-            if (orientation > pi)
-                orientation = orientation - pi;
-            
-            magOut[x+y*8] = mag;
-            orientationOut[x+y*8] = orientation;
-            
-            
-        }
-    
-}
 
 /**
  * Build a visualization of the HOG feature, we ignore the overlapped cells
@@ -436,10 +404,14 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
 
     double maxNormalization = 0;
     
+//    printf("blocks in x = %d\n", feature->getOverlappingBlocksInAxisX());
+//    printf("last x = %d, y = %d\n", feature->getImageXFromCellIndexX(feature->getOverlappingBlocksInAxisX(), 0),
+//            feature->getImageYFromCellIndexY(feature->getOverlappingBlocksInAxisY(), 0));
+    
     // if global normalization
     for (int colorChannel =0 ; colorChannel < feature->m_colorChannels; colorChannel++)
-        for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
-            for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
+        for (int yblock=0; yblock < feature->getOverlappingBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getOverlappingBlocksInAxisX(); xblock++)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
                     for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
                     {    
@@ -454,14 +426,19 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
     maxNormalization = 255 / maxNormalization;
     
     for (int colorChannel =0 ; colorChannel < feature->m_colorChannels; colorChannel++)
-        for (int yblock=0; yblock < feature->getBlocksInAxisY(); yblock++)
-            for (int xblock=0; xblock < feature->getBlocksInAxisX(); xblock++)
+        for (int yblock=0; yblock < feature->getOverlappingBlocksInAxisY(); yblock++)
+            for (int xblock=0; xblock < feature->getOverlappingBlocksInAxisX(); xblock++)
                 for (int ycell=0; ycell < feature->m_blockHeight; ycell++)
                     for (int xcell = 0; xcell < feature->m_blockWidth; xcell++)
                     {    
                         double* pBin = feature->getBin(xblock, yblock, xcell, ycell, colorChannel);
 
-                        ReferenceSubImage window(image, feature->getImageXFromCellIndexX(xblock, xcell), feature->getImageYFromCellIndexY(yblock, ycell), 8, 8);
+                        int fx = feature->getImageXFromCellIndexX(xblock, xcell);
+                        int fy = feature->getImageYFromCellIndexY(yblock, ycell);
+                        
+//                        printf("draw hog %d, %d - ", fx, fy);
+                        
+                        ReferenceSubImage window(image, fx, fy, 8, 8);
 
                         double angle = pi18;
                         for (int i=0; i < 9; i++)
@@ -471,7 +448,11 @@ Image* HOGProcessor::createHOGVisualization(HOGFeature* feature)
                             else
                                 window.drawAngleLine(angle, pBin[i] * maxNormalization, colorChannel);
                             angle += pi9;
+                            
+                            //printf("%.2f ", pBin[i]);
                         }
+                        
+                        //printf("\n");
                     }
     
     return image;

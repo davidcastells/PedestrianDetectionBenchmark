@@ -43,8 +43,8 @@ HOGFeature::HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellH
 {
     assert(imageWidth % cellWidth == 0);
     assert(imageHeight % cellHeight == 0);
-    assert(imageWidth % (cellWidth*blockWidth) == 0);
-    assert(imageHeight % (cellHeight*blockHeight) == 0);
+    //assert(imageWidth % (cellWidth*blockWidth) == 0);
+    //assert(imageHeight % (cellHeight*blockHeight) == 0);
 
     
     m_imageWidth = imageWidth;
@@ -60,11 +60,13 @@ HOGFeature::HOGFeature(int imageWidth, int imageHeight, int cellWidth, int cellH
     int cellsInXAxis = imageWidth / cellWidth;      // how many cells fit in image width
     int cellsInYAxis = imageHeight / cellHeight;
     
-    int blocksInXAxis = cellsInXAxis / blockWidth;  // how many blocks fit in image width
-    int blocksInYAxis = cellsInYAxis / blockHeight; // how many blocks fit in image height
+//    int blocksInXAxis = cellsInXAxis / blockWidth;  // how many blocks fit in image width
+//    int blocksInYAxis = cellsInYAxis / blockHeight; // how many blocks fit in image height
+//    
+    assert(m_blockWidth == 2);
     
-    m_numBlocksX = blocksInXAxis * 2 - 1;
-    m_numBlocksY = blocksInYAxis * 2 - 1;
+    m_numBlocksX = cellsInXAxis - 1;
+    m_numBlocksY = cellsInYAxis - 1;
     
     assert(m_numBlocksX > 2);
     assert(m_numBlocksY > 2);
@@ -240,8 +242,12 @@ double* HOGFeature::getBin(int blockx, int blocky, int cellx, int celly, int col
     int cellsPerRow = (m_numBlocksX * m_blockWidth);
     int cellsPerCol = (m_numBlocksY * m_blockHeight);
     
-    int index = color * (cellsPerRow*cellsPerCol) + (indexY*cellsPerRow) + indexX;
-    return &m_buffer[index*9];
+    int index = color * (cellsPerRow*cellsPerCol*9) + (indexY*cellsPerRow*9) + indexX*9;
+    
+    if (!(index < getTotalBins()))
+        assert(0);
+    
+    return &m_buffer[index];
 }
 
 //HOGFeature::HOGFeature(const HOGFeature& orig)
@@ -250,6 +256,10 @@ double* HOGFeature::getBin(int blockx, int blocky, int cellx, int celly, int col
 
 HOGFeature::~HOGFeature()
 {
-    delete [] m_buffer;
+    if (m_buffer != NULL)
+    {
+        delete [] m_buffer;
+        m_buffer = NULL;
+    }
 }
 

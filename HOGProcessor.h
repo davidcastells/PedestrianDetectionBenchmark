@@ -44,18 +44,30 @@ public:
     virtual ~HOGProcessor();
     
 public:
-    HOGFeature* createFeature(Image* image);
     Image* createHOGVisualization(HOGFeature* feature);
     std::vector<Image*> createHogImages(std::vector<Image*> images);
     std::vector<HOGFeature*> createHogFeatures(std::vector<Image*> images);
+    
+    HOGFeature* createFeature(Image* image);
+    
+    HOGFeature* allocateMemFeature(Image* image);
+    double* allocateMemGradient(Image* image);
 
+
+    //void computeHOG(Image* image, HOGFeature* feature);
+    void computeNorm(Image* image, HOGFeature* preNorm, HOGFeature* feature);
+
+    void computeGradient(Image* image, double* pGradientMag, double* pGradientOrient);
+    void computeHistogram(Image* image, double* pGradientMag, double* pGradientOrient, HOGFeature* preNorm);
+
+    //  __attribute__((deprecated));
 protected:
-    void computeGradient(Image* image, HOGFeature* feature, int xblock, int yblock, int xcell, int ycell, int colorChannel, short* gradientX, short* gradientY) __attribute__((deprecated));
     void computeGradient(Image* image, HOGFeature* feature, int xcell, int ycell, int colorChannel, double* magOut, double* orientationOut);
-    void computeHistogram(short* gradientX, short* gradientY, unsigned int* pBin) __attribute__((deprecated));
-    void computeHistogram(double* magIn, double* orientationIn, double* pBin);
     void getCellX();
     void getCellY();
+    void interpolateBins(double gMag, double gOri, int* bin0, int* bin1, double* mag0, double* mag1);
+    double cellInterpolation(double centerx, double centery, double x, double y);
+    double cellGaussian(double x, double y);
     
 public:
     bool m_rotateHog;
@@ -66,6 +78,7 @@ public:
     int m_blockWidth;   // number of cells per block in x
     int m_blockHeight;  // number of cells per block in y
 };
+
 
 #endif /* HOGPROCESSOR_H */
 

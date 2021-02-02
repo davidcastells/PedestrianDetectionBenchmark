@@ -130,7 +130,8 @@ BufferedImage* ImageIO::loadImage(const char* filename, int numChannels)
     int color_type = png_get_color_type(png_ptr, info_ptr);
     int bit_depth = png_get_bit_depth(png_ptr, info_ptr);
     
-    //PNG_COLOR_TYPE_RGB
+    if (color_type == PNG_COLOR_TYPE_RGB)
+        bit_depth *= 3;
     
 //    printf("Color Type=%d\n", color_type);
 //    printf("Bit Depth=%d\n", bit_depth);

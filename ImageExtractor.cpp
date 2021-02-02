@@ -408,9 +408,16 @@ void ImageExtractor::saveImageAsPng(const char* filename, Image* image)
    {
       for (x=0 ; x < image->m_width ; x++) 
       {
-          row[x*3] = image->getR(x, y);
-          row[x*3+1] = image->getG(x, y);
-          row[x*3+2] = image->getB(x, y);
+          if (image->m_channels == 3)
+          {
+            row[x*3] = image->getR(x, y);
+            row[x*3+1] = image->getG(x, y);
+            row[x*3+2] = image->getB(x, y);
+          }
+          else
+          {
+              row[x*3] = row[x*3+1] = row[x*3+2] = image->getR(x, y);
+          }
       }
       png_write_row(png_ptr, row);
    }

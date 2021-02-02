@@ -100,6 +100,7 @@ protected:
     int m_doResizePersonsY;
     int m_slidingWindowInc;
     int m_multiscales;
+    double m_svmThreshold; 
     double m_multiscaleIncFactor;
     double m_fps;
     std::string m_dataset;

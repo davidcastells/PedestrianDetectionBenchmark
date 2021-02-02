@@ -102,7 +102,7 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_multiscales = 15;
     m_useGPU = false;
     m_useFPGA = false;
-    
+    m_svmThreshold = 0.7;
     m_invocationPath = args[0];
     
     for (int i=1; i < argc; i++)
@@ -203,6 +203,11 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
         else if (strcmp(args[i], "--show-positive-samples") == 0)
         {
             m_doShowPositiveSamples = true;
+        }
+        else if (strcmp(args[i], "--threshold") == 0)
+        {
+            m_svmThreshold = atof(args[++i]);
+            printf("SVM threshold=%f\n", m_svmThreshold);
         }
         else
         {
@@ -377,7 +382,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                 if (slideY >= (image->m_height - m_doResizePersonsY))
                     continue;
                 
-//                printf("Testing %d %d %d %d\n", slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
+                //printf("Testing %d %d %d %d\n", slideX, slideY, m_doResizePersonsX, m_doResizePersonsY);
                 
                 BoundingBox box(slideX, slideY, m_doResizePersonsX, m_doResizePersonsY, false);
                 
@@ -390,7 +395,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
                 tTotalPredict += tPredict.lap();
                 delete feature;
 
-                if (ret > 0.7)
+                if (ret > m_svmThreshold)
                 {
                     BoundingBox scaledImageBox(box);
                     box.scaleDown(scaleFactor);         // downsize to draw the box in the original image
@@ -441,6 +446,7 @@ void PedestrianDetectionBenchmark::slidingWindowPrediction(Image* refImage, std:
         curW = (int) ((refImage->m_width * scaleFactor + (roundingX-1)) / roundingX) * roundingX;
         curH = (int) ((refImage->m_height * scaleFactor + (roundingY-1)) / roundingY) * roundingY;
         
+        delete wholeImageFeature;
         delete image;
     }
     
@@ -631,6 +637,9 @@ void PedestrianDetectionBenchmark::run()
         XWindow debugWindow;
         debugWindow.create(m_doResizePersonsX, m_doResizePersonsY, 24, 2);
         
+        int nFP = 0;
+        int nFN = 0;
+        
         for (int i=0; i < files.size(); i++)
         {
             std::string path = files.at(i).getPath();
@@ -653,6 +662,12 @@ void PedestrianDetectionBenchmark::run()
                 printf("Predict %s [%s]: %0.2f ", path.c_str() , (isPos)?"+":"-", v);
 
                 bool isOk = (isNeg && v < 0.5) || (isPos && v > 0.5);
+                
+                if (!isOk && isNeg)
+                    nFP++;
+                
+                if (!isOk && isPos)
+                    nFN++;
 
                 printf(isOk? "[OK]":"##### error #####");
 		printf(" features: %d", feature->getTotalBins());
@@ -662,6 +677,8 @@ void PedestrianDetectionBenchmark::run()
                 delete image;
             }
         }    
+        
+        printf("FP=%d (%0.2f%%) FN=%d (%0.2f%%)\n", nFP, ((double)nFP)/files.size(), nFN, ((double)nFN)/files.size() );
     }
     
     bool loopFrames = m_doPlayInputSequence | m_doPlayInputAsHog | m_doExtractAnnotatedPersons | m_doExtractHogPersons | m_doExtractImagesSvm | m_doExtractHogSvm | m_doPredict;
@@ -984,6 +1001,10 @@ void PedestrianDetectionBenchmark::usage()
     printf("--show-positive-samples");
     printf("\tDisplay the positive samples considered by the system\n");
     printf("\n");
+    printf("--threshold <n>\n");
+    printf("\tSVM threshold to determine positives\n");
+    printf("\n");
+    
 
 }
 

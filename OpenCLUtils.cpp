@@ -20,7 +20,7 @@ void alignedFree(void * ptr) {
 #else          // Linux
 void *alignedMalloc(size_t size) {
   void *result = NULL;
-  posix_memalign (&result, AOCL_ALIGNMENT, size);
+  int ret = posix_memalign (&result, AOCL_ALIGNMENT, size);
   return result;
 }
 

@@ -72,7 +72,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/usr/local/cuda-10.1/targets/x86_64-linux/lib/ -lX11 -lpng -ljpeg -lsvm -lOpenCL
+LDLIBSOPTIONS=-L/usr/local/cuda/targets/x86_64-linux/lib/ -lX11 -lpng -ljpeg -lsvm -lOpenCL
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

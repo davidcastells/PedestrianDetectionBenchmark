@@ -36,6 +36,8 @@
 using namespace std;
 
 /*
+ * This test extracts images
+ * 
  * This must be compiled separatelly
  * 
  * g++ test.cpp SeqFileReader.cpp SeqFileHeader.cpp Image.cpp Downloader.cpp File.cpp ImageExtractor.cpp Matfile.cpp MatfileReader.cpp BoundingBox.cpp HOGFeature.cpp BufferedImage.cpp ReferenceSubImage.cpp StringUtils.cpp -o test.exe -ljpeg -lpng -std=c++11

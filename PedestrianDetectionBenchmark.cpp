@@ -107,6 +107,9 @@ void PedestrianDetectionBenchmark::parseOptions(int argc, char* args[])
     m_allowedFalsePositivesPerFrame = 10;
     m_maxFalsePositivesExtractedPerFrame = 10;
     
+    m_allowedFalsePositivesPerFrame = 10;
+    m_maxFalsePositivesExtractedPerFrame = 10;
+    
     m_invocationPath = args[0];
     
     for (int i=1; i < argc; i++)
@@ -759,6 +762,8 @@ void PedestrianDetectionBenchmark::run()
             reader.skipImageData(&header);
             printf("skiping frame %d\n", i);
         }
+        
+        m_extractedNegativesCount = 0;
         
         m_extractedNegativesCount = 0;
         

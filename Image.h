@@ -43,6 +43,7 @@ public:
     void convertToYuv();
     void convertToMonochrome();
     void resizeFrom(Image* src);
+    void cropFrom(Image* src, int ox, int oy);
     
 private:
     int interpolate(double x, double y, int color);

@@ -149,6 +149,23 @@ void Image::resizeFrom(Image* src)
             }
 }
 
+
+void Image::cropFrom(Image* src, int ox, int oy)
+{
+    m_objId = src->m_objId;
+    
+    
+    for (int c=0; c < m_channels; c++)
+        for (int y = 0; y < m_height; y++)
+            for (int x = 0; x < m_width; x++)
+            {
+                int v = src->get(ox+x, oy+y, c);
+                
+                set(x, y, c, v);
+                
+            }
+}
+
 /**
  * 
  * @param x

@@ -27,7 +27,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=PedestrianDetectionBenchmark
 
 # Active Configuration
-DEFAULTCONF=Ubuntu-Release
+DEFAULTCONF=Cygwin-Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
